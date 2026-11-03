@@ -12,10 +12,10 @@ const cal = config.plans.calendar;
 const questions = loadQuestions(`${root}questions`, config.factKeys);
 const jst = (ymd: string) => new Date(`${ymd}T09:00:00+09:00`);
 
-// アイドル業界に Basic・Lite の2社、音楽業界に Lite 1社
+// アイドル業界に Pro・Lite の2社、音楽業界に Lite 1社
 const file: EntitiesFile = {
   clients: [
-    { id: "std", name: "Basic", plan: "basic" },
+    { id: "std", name: "Pro", plan: "pro" },
     { id: "try", name: "Lite", plan: "lite" },
     { id: "mus", name: "音楽 Lite", plan: "lite" },
   ],
@@ -51,11 +51,11 @@ test("Lite プラン: lite タグの質問だけ・言い換えなし。発見�
   const disc = prompts.find((p) => p.key === "idol-disc-001|v0|-|-")!;
   assert.deepEqual(disc.clientIds.sort(), ["std", "try"]);
   const para = prompts.find((p) => p.key === "idol-disc-001|v1|-|-")!;
-  assert.deepEqual(para.clientIds, ["std"]); // 言い換えは Basic だけ
+  assert.deepEqual(para.clientIds, ["std"]); // 言い換えは Pro だけ
   assert.ok(trialOwn.length >= 10 && trialOwn.length <= 15);
 });
 
-test("定期実行: 単発の Lite は含めない。月曜は Basic の全質問、木曜は Basic の重要質問だけ", () => {
+test("定期実行: 単発の Lite は含めない。月曜は Pro の全質問、木曜は Pro の重要質問だけ", () => {
   // 2026-06-01 は月曜かつ1日
   const mon = selectPrompts(prompts, file, config.plans, { kind: "scheduled", now: jst("2026-06-01") });
   assert.ok(mon.length > 0);

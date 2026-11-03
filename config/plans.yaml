@@ -36,28 +36,28 @@ plans:
     label: Basic（月額）
     frequency: weekly
     priority_frequency: twice_weekly
-    trials: 5
+    trials: 3 # 月単位の傾向を見る精度（出現率の誤差 ±12pt 程度）。週ごとの細かい変化は Pro
     engines: [openai, gemini, perplexity, claude]
     max_competitors: 3
     question_set: all
     paraphrases: true
     fact_keys: all
-    monthly_cost_cap_jpy: 40000
+    monthly_cost_cap_jpy: 20000 # 想定原価 約1万円（悲観 約2.1万円）/ 販売価格 4万円
     report: full # エンジン別・カテゴリ別・推移・信頼区間
     human_support: false
 
   # Pro: 月額サブスクリプション＋人によるサポート
-  # 【要検討】計測内容を Basic と変えるか（競合数・重要質問の頻度など）。現状は Basic と同じ計測
+  # Basic との差: 試行回数（5回）と人によるサポート
   pro:
     label: Pro（月額・サポート付き）
     frequency: weekly
     priority_frequency: twice_weekly
-    trials: 5
+    trials: 5 # Basic より精度を上げる
     engines: [openai, gemini, perplexity, claude]
     max_competitors: 3
     question_set: all
     paraphrases: true
     fact_keys: all
-    monthly_cost_cap_jpy: 40000
+    monthly_cost_cap_jpy: 40000 # 想定原価 約1.6万円（悲観 約3.5万円）/ 販売価格 8万円
     report: full
     human_support: true
