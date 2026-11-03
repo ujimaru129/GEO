@@ -11,17 +11,17 @@ calendar:
   monthly_day: 1 # monthly の実行日（日付）
 
 plans:
-  # お試し: 単発計測。定期実行には含めず、受注時に手動で1回実行する
+  # Lite: 単発計測（お試し）。定期実行には含めず、受注時に手動で1回実行する
   #   npm run measure -- --scope full --clients <顧客ID>
   # 【要検討】試行回数・質問数・正解データの範囲・正解データの入力者
-  trial:
-    label: お試し（単発）
+  lite:
+    label: Lite（単発）
     frequency: once
     priority_frequency: none
     trials: 3
     engines: [openai, gemini, perplexity, claude]
     max_competitors: 3
-    question_set: trial # 質問辞書で plans に trial を含む質問のみ
+    question_set: tagged # 質問辞書で plans に lite を含む質問のみ
     paraphrases: false
     fact_keys: # 【要検討】正解データとして扱う項目（業界別）
       idol: [current_members, former_members, agency, latest_release]
@@ -31,9 +31,9 @@ plans:
     report: summary # エンジン合計の傾向＋誤情報一覧
     human_support: false
 
-  # 通常: 月額サブスクリプション
-  standard:
-    label: 通常（月額）
+  # Basic: 月額サブスクリプション
+  basic:
+    label: Basic（月額）
     frequency: weekly
     priority_frequency: twice_weekly
     trials: 5
@@ -46,10 +46,10 @@ plans:
     report: full # エンジン別・カテゴリ別・推移・信頼区間
     human_support: false
 
-  # プロ: 月額サブスクリプション＋人によるサポート
-  # 【要検討】計測内容を通常と変えるか（競合数・重要質問の頻度など）。現状は通常と同じ計測
+  # Pro: 月額サブスクリプション＋人によるサポート
+  # 【要検討】計測内容を Basic と変えるか（競合数・重要質問の頻度など）。現状は Basic と同じ計測
   pro:
-    label: プロ（月額・サポート付き）
+    label: Pro（月額・サポート付き）
     frequency: weekly
     priority_frequency: twice_weekly
     trials: 5

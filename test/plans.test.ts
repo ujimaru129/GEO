@@ -12,12 +12,12 @@ const cal = config.plans.calendar;
 const questions = loadQuestions(`${root}questions`, config.factKeys);
 const jst = (ymd: string) => new Date(`${ymd}T09:00:00+09:00`);
 
-// アイドル業界にお試し・標準の2社、音楽業界にお試し1社
+// アイドル業界に Basic・Lite の2社、音楽業界に Lite 1社
 const file: EntitiesFile = {
   clients: [
-    { id: "std", name: "標準", plan: "standard" },
-    { id: "try", name: "お試し", plan: "trial" },
-    { id: "mus", name: "音楽お試し", plan: "trial" },
+    { id: "std", name: "Basic", plan: "basic" },
+    { id: "try", name: "Lite", plan: "lite" },
+    { id: "mus", name: "音楽 Lite", plan: "lite" },
   ],
   entities: [
     { id: "s1", client_id: "std", industry: "idol", role: "target", type: "group", official_name: "グループS", aliases: [], ambiguous: false, competitors: ["x1", "x2", "x3"] },
@@ -42,20 +42,20 @@ test("日本時間で計測日を判定する（2026-11-02 は月曜、11-05 は
   assert.equal(isDue("biweekly", jst("2026-11-09"), cal), true);
 });
 
-test("お試しプラン: trial タグの質問だけ・言い換えなし。発見の質問は同業界で共有", () => {
+test("Lite プラン: lite タグの質問だけ・言い換えなし。発見の質問は同業界で共有", () => {
   const trialOwn = prompts.filter((p) => p.clientIds.includes("try"));
   assert.ok(trialOwn.every((p) => p.variant === 0));
-  const trialIds = new Set(questions.filter((q) => q.plans.includes("trial")).map((q) => q.id));
+  const trialIds = new Set(questions.filter((q) => q.plans.includes("lite")).map((q) => q.id));
   assert.ok(trialOwn.every((p) => trialIds.has(p.questionId)));
-  assert.ok(!trialOwn.some((p) => p.questionId === "idol-ent-004")); // trial タグなし
+  assert.ok(!trialOwn.some((p) => p.questionId === "idol-ent-004")); // lite タグなし
   const disc = prompts.find((p) => p.key === "idol-disc-001|v0|-|-")!;
   assert.deepEqual(disc.clientIds.sort(), ["std", "try"]);
   const para = prompts.find((p) => p.key === "idol-disc-001|v1|-|-")!;
-  assert.deepEqual(para.clientIds, ["std"]); // 言い換えは標準だけ
+  assert.deepEqual(para.clientIds, ["std"]); // 言い換えは Basic だけ
   assert.ok(trialOwn.length >= 10 && trialOwn.length <= 15);
 });
 
-test("定期実行: 単発のお試しは含めない。月曜は通常の全質問、木曜は通常の重要質問だけ", () => {
+test("定期実行: 単発の Lite は含めない。月曜は Basic の全質問、木曜は Basic の重要質問だけ", () => {
   // 2026-06-01 は月曜かつ1日
   const mon = selectPrompts(prompts, file, config.plans, { kind: "scheduled", now: jst("2026-06-01") });
   assert.ok(mon.length > 0);
@@ -68,11 +68,11 @@ test("定期実行: 単発のお試しは含めない。月曜は通常の全質
   assert.equal(selectPrompts(prompts, file, config.plans, { kind: "scheduled", now: jst("2026-11-03") }).length, 0);
 });
 
-test("お試し（単発）は --clients 指定の手動計測で実行でき、1回の原価が上限内に収まる", () => {
+test("Lite（単発）は --clients 指定の手動計測で実行でき、1回の原価が上限内に収まる", () => {
   const sel = selectPrompts(prompts, file, config.plans, { kind: "full" }, { clients: ["mus"] });
   const est = estimatePlan(buildPlan(sel), config.engines);
   const jpy = est.byClient.mus * config.measurement.budget.fx_jpy_per_usd;
-  assert.ok(jpy < config.plans.plans.trial.monthly_cost_cap_jpy, `お試し1回の見積 ¥${Math.round(jpy)}`);
+  assert.ok(jpy < config.plans.plans.lite.monthly_cost_cap_jpy, `Lite 1回の見積 ¥${Math.round(jpy)}`);
 });
 
 test("--clients で顧客を絞ると、共有の質問もその顧客分だけになる", () => {

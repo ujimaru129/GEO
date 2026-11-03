@@ -16,7 +16,7 @@ export const questionSchema = z.object({
   priority: z.enum(["high", "normal"]).default("normal"),
   /** 言い回し違い。結果の差（パターン間の差）を記録するため、別の prompt として計測する */
   paraphrases: z.array(z.string()).default([]),
-  /** question_set が all 以外のプランで計測対象にする場合に、そのプラン名を書く（例: [trial]） */
+  /** question_set が all 以外のプランで計測対象にする場合に、そのプラン名を書く（例: [lite]） */
   plans: z.array(z.string()).default([]),
 });
 export const questionFileSchema = z.object({

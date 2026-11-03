@@ -3,7 +3,7 @@
 clients:
   - id: self
     name: 自社テスト
-    plan: standard # config/plans.yaml のプラン名（trial / standard / pro）
+    plan: basic # config/plans.yaml のプラン名（lite / basic / pro）
 
 entities:
   # --- アイドル ---

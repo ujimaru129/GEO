@@ -15,8 +15,8 @@ const noSleep = async () => {};
 const quiet = () => {};
 const entities: EntitiesFile = {
   clients: [
-    { id: "std", name: "標準の顧客", plan: "standard" },
-    { id: "try", name: "お試しの顧客", plan: "trial" },
+    { id: "std", name: "Basic の顧客", plan: "basic" },
+    { id: "try", name: "Lite の顧客", plan: "lite" },
   ],
   entities: [],
 };
@@ -130,13 +130,13 @@ test("全体予算で止まった試行も行として残す（欠損を明示�
 
 test("顧客の原価上限: 上限に達した顧客の分は止め、共有の質問は残りの顧客で按分する", async () => {
   const storage = new MemoryStorage();
-  storage.baseMonthCostByClient = { try: 3000 / 155 }; // お試し顧客は上限 ¥3,000 に到達済み
+  storage.baseMonthCostByClient = { try: 3000 / 155 }; // Lite の顧客は上限 ¥3,000 に到達済み
   const s = await run({
     storage,
     engines: [new MockEngine("claude")],
     selection: [
-      ...select(1, { clients: ["try"], engines: ["claude"] }), // お試し顧客専用 → 止まる
-      ...select(1, { clients: ["std", "try"], engines: ["claude"], offset: 1 }), // 共有 → 標準顧客だけで負担
+      ...select(1, { clients: ["try"], engines: ["claude"] }), // Lite の顧客専用 → 止まる
+      ...select(1, { clients: ["std", "try"], engines: ["claude"], offset: 1 }), // 共有 → Basic の顧客だけで負担
     ],
   });
   assert.equal(s.ok, 1);

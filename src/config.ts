@@ -89,7 +89,8 @@ export const planSchema = z.object({
   trials: z.number().int().min(1).max(20),
   engines: z.array(z.enum(ENGINE_NAMES)).min(1),
   max_competitors: z.number().int().min(0),
-  question_set: z.enum(["trial", "all"]),
+  /** tagged = 質問辞書の plans にこのプラン名がある質問のみ / all = 全質問 */
+  question_set: z.enum(["tagged", "all"]),
   paraphrases: z.boolean(),
   fact_keys: z.union([z.literal("all"), z.record(z.string(), z.array(z.string()))]),
   monthly_cost_cap_jpy: z.number().positive(),

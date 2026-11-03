@@ -34,7 +34,7 @@ export function buildPlan(selection: SelectedPrompt[], opts: PlanOptions = {}): 
       if (trialNo > (opts.trials ?? s.trials)) continue;
       for (const [engine, engineClientIds] of Object.entries(s.engineClients) as [EngineName, string[]][]) {
         if (opts.engines && !opts.engines.includes(engine)) continue;
-        // 例: 標準(5回)とお試し(3回)の共有質問の4・5回目は、標準の顧客だけが負担する
+        // 例: Basic(5回)と Lite(3回)の共有質問の4・5回目は、Basic の顧客だけが負担する
         const clientIds = opts.trials ? engineClientIds : engineClientIds.filter((c) => trialNo <= (s.clientTrials[c] ?? s.trials));
         if (clientIds.length === 0) continue;
         jobs.push({ prompt: s.prompt, engine, trialNo, clientIds });

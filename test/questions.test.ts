@@ -13,7 +13,7 @@ const ent = (e: Partial<Entity> & Pick<Entity, "id" | "role" | "type">): Entity 
 const q = (x: Partial<Question> & Pick<Question, "id" | "category" | "template">): Question => ({
   industry: "idol", variables: [], fact_keys: [], priority: "normal", paraphrases: [], plans: [], ...x,
 });
-const file = (entities: Entity[]) => ({ clients: [{ id: "self", name: "自社", plan: "standard" }], entities });
+const file = (entities: Entity[]) => ({ clients: [{ id: "self", name: "自社", plan: "basic" }], entities });
 
 test("同梱の質問辞書と対象データが検証を通る", () => {
   const config = loadConfig();
