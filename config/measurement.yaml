@@ -1,0 +1,32 @@
+# 計測の実行条件。コストに直結する値はすべてここに集約する。
+
+# 1質問×1エンジンあたりの試行回数。
+# フェーズAは 5 で実測し、信頼区間の広がりを見て 3 に下げるか判断する。
+trials: 5
+
+# 頻度（Vercel Cron から呼ぶ scope 名と対応）
+#   full     : 全質問。週1回
+#   priority : priority: high の質問のみ。週2回（毎日だとコストの半分以上を占めるため）
+schedule:
+  full: "weekly"
+  priority: "twice_weekly"
+
+budget:
+  monthly_jpy: 200000
+  fx_jpy_per_usd: 155
+  warn_ratio: 0.8 # 80% で警告
+  # 100% を超えたら priority: normal の質問を止める。
+  # high も含めて全停止するのは hard_stop_ratio を超えたとき。
+  hard_stop_ratio: 1.1
+
+concurrency:
+  global: 8
+  per_engine: { openai: 3, gemini: 3, perplexity: 3, claude: 3 }
+
+retry:
+  max_attempts: 3 # 仕様: リトライは最大3回
+  base_delay_ms: 2000
+  timeout_ms: 180000
+
+# 失敗率がこれを超えたら計測結果を「欠損多」として扱う（仕様: 2%以下）
+max_missing_rate: 0.02

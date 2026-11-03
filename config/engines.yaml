@@ -1,0 +1,54 @@
+# 計測エンジンの設定。モデル名・単価はここで差し替える（コード変更不要）。
+# 単価は USD。出典と確認日は config/pricing.json の sources を参照（2026-11-03 確認）。
+# 共通方針: システムプロンプトなし / 生成パラメータは既定値 / 日本を指定できるパラメータは全て指定。
+
+openai:
+  enabled: true
+  model: gpt-6.1-sol
+  # flex = 約半額・低速。週次計測は即時性不要なので flex を既定にする。
+  # 混雑で受け付けられない場合、最後の試行だけ standard にフォールバックする。
+  service_tier: flex
+  flex_fallback_to_standard: true
+  web_search:
+    search_context_size: medium
+    user_location: { type: approximate, country: JP, timezone: Asia/Tokyo }
+  pricing:
+    input_per_mtok: 2
+    output_per_mtok: 10
+    search_per_1k: 10
+    flex_token_multiplier: 0.5
+
+gemini:
+  enabled: true
+  model: gemini-3.8-flash # 正式なモデルIDは管理画面で確認して差し替える
+  pricing:
+    # 2026-12-31 までは導入価格 0.75 / 3.75。予算は通常価格で見積もる。
+    input_per_mtok: 1.5
+    output_per_mtok: 7.5
+    search_per_1k: 14 # 検索クエリ単位。検索由来の入力トークンは無料
+    search_free_per_month: 5000
+
+perplexity:
+  enabled: true
+  model: perplexity/sonar
+  web_search:
+    search_type: web # fast にすると $1/1k（web は $2.5/1k）。差は月数百円規模なので一般ユーザーに近い web
+    user_location: { country: JP }
+  pricing:
+    input_per_mtok: 0.25
+    output_per_mtok: 2.5
+    search_per_1k: 2.5
+    # API が usage.cost.total_cost を返した場合はそちらを正とする
+
+claude:
+  enabled: true
+  model: claude-sonnet-5-5
+  web_search:
+    tool_type: web_search_20260318 # 動的フィルタリングで検索結果の入力トークンを削減
+    max_uses: 5 # 1回答あたりの検索回数の上限（暴走防止）
+    user_location: { type: approximate, country: JP, timezone: Asia/Tokyo }
+  max_tokens: 4096
+  pricing:
+    input_per_mtok: 2
+    output_per_mtok: 10
+    search_per_1k: 10

@@ -1,0 +1,43 @@
+# 計測対象と競合。テスト対象（未決事項）が決まったら、正式名・別名・競合をここに入れて `npm run sync` する。
+# 以下は動作確認用の仮データ（実在しない名前）。実計測の前に必ず差し替えること。
+clients:
+  - id: self
+    name: 自社テスト
+
+entities:
+  # --- アイドル ---
+  - id: idol-t1
+    client_id: self
+    industry: idol
+    role: target
+    type: group
+    official_name: サンプルアイドルA
+    aliases: [サンプルA, Sample Idol A]
+    competitors: [idol-c1, idol-c2, idol-c3]
+  - { id: idol-c1, client_id: self, industry: idol, role: competitor, type: group, official_name: サンプルアイドルB }
+  - { id: idol-c2, client_id: self, industry: idol, role: competitor, type: group, official_name: サンプルアイドルC }
+  - { id: idol-c3, client_id: self, industry: idol, role: competitor, type: group, official_name: サンプルアイドルD }
+
+  # --- 音楽 ---
+  - id: music-t1
+    client_id: self
+    industry: music
+    role: target
+    type: artist
+    official_name: サンプルアーティストA
+    competitors: [music-c1, music-c2, music-c3]
+  - { id: music-c1, client_id: self, industry: music, role: competitor, type: artist, official_name: サンプルアーティストB }
+  - { id: music-c2, client_id: self, industry: music, role: competitor, type: artist, official_name: サンプルアーティストC }
+  - { id: music-c3, client_id: self, industry: music, role: competitor, type: artist, official_name: サンプルアーティストD }
+
+  # --- ゲーム ---
+  - id: game-t1
+    client_id: self
+    industry: game
+    role: target
+    type: title
+    official_name: サンプルゲームA
+    competitors: [game-c1, game-c2, game-c3]
+  - { id: game-c1, client_id: self, industry: game, role: competitor, type: title, official_name: サンプルゲームB }
+  - { id: game-c2, client_id: self, industry: game, role: competitor, type: title, official_name: サンプルゲームC }
+  - { id: game-c3, client_id: self, industry: game, role: competitor, type: title, official_name: サンプルゲームD }

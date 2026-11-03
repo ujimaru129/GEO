@@ -1,0 +1,24 @@
+{
+  "name": "entame-geo",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --no-warnings --test \"test/**/*.test.ts\"",
+    "measure": "node --env-file-if-exists=.env --experimental-strip-types --no-warnings src/cli/measure.ts",
+    "sync": "node --env-file-if-exists=.env --experimental-strip-types --no-warnings src/cli/sync.ts",
+    "estimate": "node --experimental-strip-types --no-warnings scripts/estimate-budget.ts"
+  },
+  "dependencies": {
+    "postgres": "^4.0.0",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
+  }
+}

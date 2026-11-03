@@ -1,0 +1,56 @@
+industry: music
+# variables: {artist} = 計測対象（type: artist）の正式名 / {competitor} = その競合
+questions:
+  - id: music-disc-001
+    category: discovery
+    template: "最近人気のおすすめ邦楽アーティストを5組教えて"
+    paraphrases: ["今聴くべき日本のアーティストを教えて"]
+    priority: high
+  - id: music-disc-002
+    category: discovery
+    template: "作業中に聴きやすいおすすめのJ-POPアーティストは？"
+  - id: music-disc-003
+    category: discovery
+    template: "エモい雰囲気のおすすめの曲を教えて"
+  - id: music-disc-004
+    category: discovery
+    template: "ライブに行ってみたいおすすめのバンドは？"
+
+  - id: music-ent-001
+    category: entity
+    template: "{artist}の代表曲を教えて"
+    variables: [artist]
+    fact_keys: [signature_songs]
+    priority: high
+  - id: music-ent-002
+    category: entity
+    template: "{artist}の所属レーベルはどこ？"
+    variables: [artist]
+    fact_keys: [label]
+  - id: music-ent-003
+    category: entity
+    template: "{artist}の曲は誰が作詞作曲している？"
+    variables: [artist]
+    fact_keys: [songwriting_credits]
+  - id: music-ent-004
+    category: entity
+    template: "{artist}はどんなアーティスト？"
+    variables: [artist]
+    fact_keys: [members, label, debut_on]
+
+  - id: music-cmp-001
+    category: comparison
+    template: "{artist}と{competitor}の違いは？"
+    variables: [artist, competitor]
+
+  - id: music-rec-001
+    category: recency
+    template: "{artist}の最新リリースは？"
+    variables: [artist]
+    fact_keys: [latest_release]
+    priority: high
+  - id: music-rec-002
+    category: recency
+    template: "{artist}の次のライブやツアーの予定は？"
+    variables: [artist]
+    fact_keys: [upcoming_live]

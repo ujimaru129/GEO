@@ -42,10 +42,12 @@ const INFRA_USD = 60; // Vercel Pro + Supabase Pro + QStash
 const WEEKS_PER_MONTH = 4.33;
 const DAYS_PER_MONTH = 30;
 
+// extraRunsPerMonth: 週次の全件計測とは別に、priority: high を追加で回す回数（月あたり）
 const SCENARIOS = {
-  "標準（仕様書どおり）": { weeklyQ: 150, weeklyTrials: 5, dailyQ: 30, dailyTrials: 5 },
-  "軽量": { weeklyQ: 150, weeklyTrials: 5, dailyQ: 10, dailyTrials: 3 },
-  "最小": { weeklyQ: 150, weeklyTrials: 3, dailyQ: 0, dailyTrials: 0 },
+  "仕様書どおり（重要は毎日）": { weeklyQ: 150, weeklyTrials: 5, dailyQ: 30, dailyTrials: 5, extraRunsPerMonth: DAYS_PER_MONTH - WEEKS_PER_MONTH },
+  "現行設定（重要は週2回）": { weeklyQ: 150, weeklyTrials: 5, dailyQ: 30, dailyTrials: 5, extraRunsPerMonth: WEEKS_PER_MONTH },
+  "現行設定・試行3回": { weeklyQ: 150, weeklyTrials: 3, dailyQ: 30, dailyTrials: 3, extraRunsPerMonth: WEEKS_PER_MONTH },
+  "最小（週1全件×3回のみ）": { weeklyQ: 150, weeklyTrials: 3, dailyQ: 0, dailyTrials: 0, extraRunsPerMonth: 0 },
 };
 
 const ENGINE_SETS: Record<string, string[]> = {
@@ -67,7 +69,7 @@ function perCall(key: string, a: Assumption) {
 }
 
 function monthly(setName: string, scen: (typeof SCENARIOS)[keyof typeof SCENARIOS], a: Assumption) {
-  const dailyDays = scen.dailyQ ? DAYS_PER_MONTH - WEEKS_PER_MONTH : 0;
+  const dailyDays = scen.extraRunsPerMonth;
   const callsPerEngine =
     (scen.weeklyQ * scen.weeklyTrials * WEEKS_PER_MONTH + scen.dailyQ * scen.dailyTrials * dailyDays) *
     (1 + RETRY_OVERHEAD);

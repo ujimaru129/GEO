@@ -1,0 +1,63 @@
+industry: idol
+# variables: {group} = 計測対象（type: group）の正式名 / {competitor} = その競合
+# priority: high は週2回計測。コストに直結するので必要最小限にする。
+questions:
+  - id: idol-disc-001
+    category: discovery
+    template: "今おすすめの新人アイドルグループを5組教えて"
+    paraphrases: ["最近デビューした注目のアイドルグループを教えて"]
+    priority: high
+  - id: idol-disc-002
+    category: discovery
+    template: "ライブが楽しいおすすめのアイドルグループは？"
+  - id: idol-disc-003
+    category: discovery
+    template: "これから売れそうなアイドルグループを教えて"
+  - id: idol-disc-004
+    category: discovery
+    template: "アイドル初心者におすすめのグループは？"
+
+  - id: idol-ent-001
+    category: entity
+    template: "{group}の現在のメンバーを教えて"
+    paraphrases: ["{group}って何人組？メンバーは誰？"]
+    variables: [group]
+    fact_keys: [current_members, former_members]
+    priority: high
+  - id: idol-ent-002
+    category: entity
+    template: "{group}を卒業したメンバーは誰？"
+    variables: [group]
+    fact_keys: [former_members]
+  - id: idol-ent-003
+    category: entity
+    template: "{group}の所属事務所はどこ？"
+    variables: [group]
+    fact_keys: [agency]
+  - id: idol-ent-004
+    category: entity
+    template: "{group}はいつ結成された？"
+    variables: [group]
+    fact_keys: [formed_on]
+  - id: idol-ent-005
+    category: entity
+    template: "{group}はどんなグループ？"
+    variables: [group]
+    fact_keys: [current_members, agency, formed_on]
+
+  - id: idol-cmp-001
+    category: comparison
+    template: "{group}と{competitor}の違いは？"
+    variables: [group, competitor]
+
+  - id: idol-rec-001
+    category: recency
+    template: "{group}の最新シングルは？"
+    variables: [group]
+    fact_keys: [latest_release]
+    priority: high
+  - id: idol-rec-002
+    category: recency
+    template: "{group}の次のライブ予定を教えて"
+    variables: [group]
+    fact_keys: [upcoming_live]
