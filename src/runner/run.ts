@@ -2,18 +2,23 @@ import { randomUUID } from "node:crypto";
 import type { AppConfig, EngineName } from "../config.ts";
 import type { EngineClient, EngineResult } from "../engines/types.ts";
 import { computeCost, estimateCallUsd } from "../pricing.ts";
-import type { Prompt } from "../questions/index.ts";
+import type { SelectedPrompt } from "../plans.ts";
+import type { EntitiesFile } from "../questions/index.ts";
 import type { RunRecord, Storage } from "../storage/types.ts";
-import { BudgetGuard } from "./budget.ts";
-import { type Job, type Scope, buildPlan, estimatePlan } from "./plan.ts";
+import { BudgetGuard, ClientBudgets } from "./budget.ts";
+import { type Job, buildPlan, estimatePlan } from "./plan.ts";
 import { RetryExhaustedError, withRetry } from "./retry.ts";
 
 export type RunOptions = {
   config: AppConfig;
   engines: EngineClient[];
   storage: Storage;
-  prompts: Prompt[];
-  scope: Scope;
+  /** plans.ts の selectPrompts で選んだ質問（顧客・試行回数・エンジン付き） */
+  selection: SelectedPrompt[];
+  /** 顧客とプランの対応（顧客ごとの原価上限に使う） */
+  entities: EntitiesFile;
+  /** measurements.scope に記録する名前（scheduled / full / priority など） */
+  scope: string;
   trials?: number;
   limitPrompts?: number;
   /** 見積額が残り予算を超えていても実行する */
@@ -39,6 +44,8 @@ export type MeasurementSummary = {
   estimatedUsd: number;
   byEngine: Record<string, { ok: number; failed: number; skippedBudget: number; costUsd: number; searchCount: number }>;
   budget: ReturnType<BudgetGuard["snapshot"]>;
+  /** 顧客別: 今回の按分後費用と当月の累計 */
+  byClient: Record<string, { costUsd: number; spentJpy: number; capJpy: number }>;
 };
 
 export class BudgetExceededError extends Error {}
@@ -49,14 +56,14 @@ export async function runMeasurement(opts: RunOptions): Promise<MeasurementSumma
   const log = opts.log ?? console.log;
   const m = config.measurement;
   const engineByName = new Map(opts.engines.map((e) => [e.name, e]));
-  const jobs = buildPlan(opts.prompts, {
-    scope: opts.scope,
-    engines: [...engineByName.keys()],
-    trials: opts.trials ?? m.trials,
-    limitPrompts: opts.limitPrompts,
-  });
+  const jobs = buildPlan(opts.selection, { engines: [...engineByName.keys()], trials: opts.trials, limitPrompts: opts.limitPrompts });
   const estimate = estimatePlan(jobs, config.engines);
   const budget = new BudgetGuard(m.budget, await storage.monthToDateCostUsd(now()), log);
+  const fx = m.budget.fx_jpy_per_usd;
+  const clientCaps = Object.fromEntries(
+    opts.entities.clients.map((c) => [c.id, config.plans.plans[c.plan].monthly_cost_cap_jpy / fx]),
+  );
+  const clientBudgets = new ClientBudgets(clientCaps, await storage.monthToDateCostUsdByClient(now()));
 
   if (!opts.force && budget.stateFor(estimate.totalUsd) === "stop_all") {
     throw new BudgetExceededError(
@@ -91,6 +98,7 @@ export async function runMeasurement(opts: RunOptions): Promise<MeasurementSumma
     estimatedUsd: estimate.totalUsd,
     byEngine: {},
     budget: budget.snapshot(),
+    byClient: {},
   };
 
   const globalSem = new Semaphore(m.concurrency.global);
@@ -98,6 +106,7 @@ export async function runMeasurement(opts: RunOptions): Promise<MeasurementSumma
     [...engineByName.keys()].map((n) => [n, new Semaphore(m.concurrency.per_engine[n] ?? 1)]),
   );
   let done = 0;
+  const jobClients = new Set(jobs.flatMap((j) => j.clientIds));
 
   const execute = async (job: Job) => {
     const engine = engineByName.get(job.engine)!;
@@ -117,17 +126,23 @@ export async function runMeasurement(opts: RunOptions): Promise<MeasurementSumma
     };
     const stats = (summary.byEngine[job.engine] ??= { ok: 0, failed: 0, skippedBudget: 0, costUsd: 0, searchCount: 0 });
 
-    if (!budget.tryReserve(reserve, job.prompt.priority)) {
+    const skip = async (reason: string) => {
       await storage.recordRun(
         { ...base, model: null, executedAt: now().toISOString(), status: "skipped_budget", attempts: 0, latencyMs: null,
           inputTokens: null, outputTokens: null, reasoningTokens: null, searchCount: null, costUsd: 0, costJpy: 0,
-          error: "月間予算の上限に達したため未実行" },
+          costAllocation: {}, error: reason },
         null,
       );
       summary.skippedBudget++;
       stats.skippedBudget++;
-      return;
+    };
+    const clients = clientBudgets.tryReserve(job.clientIds, reserve);
+    if (!clients) return skip(`顧客の原価上限に達したため未実行（${job.clientIds.join(", ")}）`);
+    if (!budget.tryReserve(reserve, job.prompt.priority)) {
+      clientBudgets.settle(clients, reserve, 0);
+      return skip("月間予算の上限に達したため未実行");
     }
+    const costAllocation = Object.fromEntries(clients.map((c) => [c, 1 / clients.length]));
 
     const started = Date.now();
     const executedAt = now().toISOString();
@@ -146,6 +161,11 @@ export async function runMeasurement(opts: RunOptions): Promise<MeasurementSumma
       const { result } = outcome;
       const cost = computeCost(config.engines[job.engine].pricing, result.usage);
       budget.settle(reserve, cost.totalUsd);
+      clientBudgets.settle(clients, reserve, cost.totalUsd);
+      for (const c of clients) {
+        const bc = (summary.byClient[c] ??= { costUsd: 0, spentJpy: 0, capJpy: 0 });
+        bc.costUsd += cost.totalUsd / clients.length;
+      }
       // 費用は保存の成否に関係なく発生しているので先に計上する
       stats.costUsd += cost.totalUsd;
       stats.searchCount += result.usage.searchCount;
@@ -154,18 +174,19 @@ export async function runMeasurement(opts: RunOptions): Promise<MeasurementSumma
         ...base, model: result.model, executedAt, status: "ok", attempts: outcome.attempts, latencyMs: Date.now() - started,
         inputTokens: result.usage.inputTokens, outputTokens: result.usage.outputTokens,
         reasoningTokens: result.usage.reasoningTokens ?? null, searchCount: result.usage.searchCount,
-        costUsd: cost.totalUsd, costJpy: cost.totalUsd * m.budget.fx_jpy_per_usd, error: null,
+        costUsd: cost.totalUsd, costJpy: cost.totalUsd * fx, costAllocation, error: null,
       };
       await storage.recordRun(run, { runId: run.id, text: result.text, citations: result.citations, request: result.request, raw: result.raw });
       summary.ok++;
       stats.ok++;
     } else {
       budget.settle(reserve, 0);
+      clientBudgets.settle(clients, reserve, 0);
       const message = outcome.error instanceof Error ? outcome.error.message : String(outcome.error);
       const run: RunRecord = {
         ...base, model: null, executedAt, status: "failed", attempts: outcome.attempts, latencyMs: Date.now() - started,
         inputTokens: null, outputTokens: null, reasoningTokens: null, searchCount: null, costUsd: 0, costJpy: 0,
-        error: message.slice(0, 2000),
+        costAllocation, error: message.slice(0, 2000),
       };
       await storage.recordRun(run, null);
       summary.failed++;
@@ -193,6 +214,10 @@ export async function runMeasurement(opts: RunOptions): Promise<MeasurementSumma
   summary.missingRateOk = summary.missingRate <= m.max_missing_rate;
   summary.costJpy = summary.costUsd * m.budget.fx_jpy_per_usd;
   summary.budget = budget.snapshot();
+  for (const [c, v] of Object.entries(clientBudgets.snapshot(fx))) {
+    if (!jobClients.has(c)) continue;
+    summary.byClient[c] = { costUsd: summary.byClient[c]?.costUsd ?? 0, ...v };
+  }
   await storage.finishMeasurement(measurementId, summary);
   return summary;
 }

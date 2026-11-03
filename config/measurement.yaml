@@ -1,15 +1,6 @@
 # 計測の実行条件。コストに直結する値はすべてここに集約する。
 
-# 1質問×1エンジンあたりの試行回数。
-# フェーズAは 5 で実測し、信頼区間の広がりを見て 3 に下げるか判断する。
-trials: 5
-
-# 頻度（Vercel Cron から呼ぶ scope 名と対応）
-#   full     : 全質問。週1回
-#   priority : priority: high の質問のみ。週2回（毎日だとコストの半分以上を占めるため）
-schedule:
-  full: "weekly"
-  priority: "twice_weekly"
+# 試行回数・頻度は顧客プランごとに config/plans.yaml で定義する。
 
 budget:
   monthly_jpy: 200000

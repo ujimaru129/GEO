@@ -67,3 +67,56 @@ export class BudgetGuard {
     };
   }
 }
+
+/**
+ * 顧客ごとの原価上限（プランの monthly_cost_cap_jpy）。
+ * 共有の質問（発見カテゴリ）は、上限に達していない顧客だけで費用を按分する。
+ */
+export class ClientBudgets {
+  private readonly capUsd: Record<string, number>;
+  private readonly spentUsd: Record<string, number>;
+  private readonly reservedUsd: Record<string, number> = {};
+
+  constructor(capUsd: Record<string, number>, monthToDateUsd: Record<string, number>) {
+    this.capUsd = capUsd;
+    this.spentUsd = { ...monthToDateUsd };
+  }
+
+  private used(c: string) {
+    return (this.spentUsd[c] ?? 0) + (this.reservedUsd[c] ?? 0);
+  }
+
+  /** 上限内で実行できる顧客を選び、見積額を均等に予約する。誰もいなければ null */
+  tryReserve(clientIds: string[], estimateUsd: number): string[] | null {
+    let eligible = [...clientIds];
+    // 按分額は人数で変わるので、収束するまで絞り込む
+    for (;;) {
+      const share = estimateUsd / eligible.length;
+      const next = eligible.filter((c) => this.capUsd[c] === undefined || this.used(c) + share <= this.capUsd[c]);
+      if (next.length === eligible.length || next.length === 0) {
+        eligible = next;
+        break;
+      }
+      eligible = next;
+    }
+    if (eligible.length === 0) return null;
+    for (const c of eligible) this.reservedUsd[c] = (this.reservedUsd[c] ?? 0) + estimateUsd / eligible.length;
+    return eligible;
+  }
+
+  settle(clientIds: string[], reservedUsd: number, actualUsd: number) {
+    for (const c of clientIds) {
+      this.reservedUsd[c] -= reservedUsd / clientIds.length;
+      this.spentUsd[c] = (this.spentUsd[c] ?? 0) + actualUsd / clientIds.length;
+    }
+  }
+
+  snapshot(fx: number) {
+    return Object.fromEntries(
+      Object.keys({ ...this.capUsd, ...this.spentUsd }).map((c) => [
+        c,
+        { spentJpy: Math.round((this.spentUsd[c] ?? 0) * fx), capJpy: Math.round((this.capUsd[c] ?? 0) * fx) },
+      ]),
+    );
+  }
+}

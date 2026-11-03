@@ -10,7 +10,8 @@
     "test": "node --experimental-strip-types --no-warnings --test \"test/**/*.test.ts\"",
     "measure": "node --env-file-if-exists=.env --experimental-strip-types --no-warnings src/cli/measure.ts",
     "sync": "node --env-file-if-exists=.env --experimental-strip-types --no-warnings src/cli/sync.ts",
-    "estimate": "node --experimental-strip-types --no-warnings scripts/estimate-budget.ts"
+    "estimate": "node --experimental-strip-types --no-warnings scripts/estimate-budget.ts",
+    "facts:import": "node --env-file-if-exists=.env --experimental-strip-types --no-warnings src/cli/facts-import.ts"
   },
   "dependencies": {
     "postgres": "^4.0.0",

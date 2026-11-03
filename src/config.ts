@@ -58,8 +58,6 @@ export const enginesConfigSchema = z.object({
 export type EnginesConfig = z.infer<typeof enginesConfigSchema>;
 
 export const measurementConfigSchema = z.object({
-  trials: z.number().int().min(1).max(20),
-  schedule: z.record(z.string(), z.string()),
   budget: z.object({
     monthly_jpy: z.number().positive(),
     fx_jpy_per_usd: z.number().positive(),
@@ -79,9 +77,51 @@ export const measurementConfigSchema = z.object({
 });
 export type MeasurementConfig = z.infer<typeof measurementConfigSchema>;
 
+const WEEKDAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+export type Weekday = (typeof WEEKDAYS)[number];
+export const weekdayIndex = (d: Weekday) => WEEKDAYS.indexOf(d);
+
+export const planSchema = z.object({
+  label: z.string(),
+  frequency: z.enum(["monthly", "biweekly", "weekly"]),
+  priority_frequency: z.enum(["none", "weekly", "twice_weekly"]),
+  trials: z.number().int().min(1).max(20),
+  engines: z.array(z.enum(ENGINE_NAMES)).min(1),
+  max_competitors: z.number().int().min(0),
+  question_set: z.enum(["trial", "all"]),
+  paraphrases: z.boolean(),
+  fact_keys: z.union([z.literal("all"), z.record(z.string(), z.array(z.string()))]),
+  monthly_cost_cap_jpy: z.number().positive(),
+  report: z.enum(["summary", "full"]),
+});
+export type Plan = z.infer<typeof planSchema>;
+
+export const plansConfigSchema = z.object({
+  calendar: z.object({
+    weekly_day: z.enum(WEEKDAYS),
+    twice_weekly_days: z.array(z.enum(WEEKDAYS)).length(2),
+    biweekly_day: z.enum(WEEKDAYS),
+    monthly_day: z.number().int().min(1).max(28),
+  }),
+  plans: z.record(z.string(), planSchema),
+});
+export type PlansConfig = z.infer<typeof plansConfigSchema>;
+
+const factKeySchema = z.object({
+  type: z.enum(["string", "list", "date", "release", "text", "enum"]),
+  label: z.string(),
+  values: z.array(z.string()).optional(),
+});
+export type FactKeyDef = z.infer<typeof factKeySchema>;
+/** 業界 → key → 定義 */
+export const factKeysSchema = z.record(z.string(), z.record(z.string(), factKeySchema));
+export type FactKeys = z.infer<typeof factKeysSchema>;
+
 export type AppConfig = {
   engines: EnginesConfig;
   measurement: MeasurementConfig;
+  plans: PlansConfig;
+  factKeys: FactKeys;
   /** 実行条件の再現用。全 run にこのハッシュを紐付け、本文は config_snapshots に保存する */
   snapshotHash: string;
   snapshot: unknown;
@@ -91,9 +131,22 @@ export function loadConfig(dir = new URL("../config/", import.meta.url)): AppCon
   const read = (name: string) => parse(readFileSync(new URL(name, dir), "utf8"));
   const engines = enginesConfigSchema.parse(read("engines.yaml"));
   const measurement = measurementConfigSchema.parse(read("measurement.yaml"));
-  const snapshot = { engines, measurement };
+  const plans = plansConfigSchema.parse(read("plans.yaml"));
+  const factKeys = factKeysSchema.parse(read("fact_keys.yaml"));
+  for (const [ind, keys] of Object.entries(factKeys)) {
+    for (const [k, def] of Object.entries(keys)) {
+      if (def.type === "enum" && !def.values?.length) throw new Error(`fact_keys: ${ind}.${k} は enum なので values が必要です`);
+    }
+  }
+  for (const [name, plan] of Object.entries(plans.plans)) {
+    if (plan.fact_keys === "all") continue;
+    for (const [ind, keys] of Object.entries(plan.fact_keys)) {
+      for (const k of keys) if (!factKeys[ind]?.[k]) throw new Error(`plans: ${name} の fact_keys ${ind}.${k} が fact_keys.yaml にありません`);
+    }
+  }
+  const snapshot = { engines, measurement, plans };
   const snapshotHash = createHash("sha256").update(stableStringify(snapshot)).digest("hex").slice(0, 16);
-  return { engines, measurement, snapshot, snapshotHash };
+  return { engines, measurement, plans, factKeys, snapshot, snapshotHash };
 }
 
 export function stableStringify(value: unknown): string {

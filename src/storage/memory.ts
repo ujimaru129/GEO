@@ -1,5 +1,6 @@
 import type { EntitiesFile, Question } from "../questions/index.ts";
-import { jstMonthStart, type MeasurementRecord, type ResponseRecord, type RunRecord, type Storage } from "./types.ts";
+import type { FactRecord } from "../facts.ts";
+import { allocateByClient, jstMonthStart, type MeasurementRecord, type ResponseRecord, type RunRecord, type Storage } from "./types.ts";
 
 export class MemoryStorage implements Storage {
   questions: Question[] = [];
@@ -8,8 +9,10 @@ export class MemoryStorage implements Storage {
   measurements = new Map<string, MeasurementRecord & { summary?: unknown }>();
   runs: RunRecord[] = [];
   responses = new Map<string, ResponseRecord>();
+  facts: FactRecord[] = [];
   /** テスト用: 当月の既存費用 */
   baseMonthCostUsd = 0;
+  baseMonthCostByClient: Record<string, number> = {};
 
   async syncDictionary(questions: Question[], entities: EntitiesFile) {
     this.questions = questions;
@@ -36,6 +39,17 @@ export class MemoryStorage implements Storage {
   async monthToDateCostUsd(now: Date) {
     const start = jstMonthStart(now).getTime();
     return this.baseMonthCostUsd + this.runs.filter((r) => Date.parse(r.executedAt) >= start).reduce((s, r) => s + r.costUsd, 0);
+  }
+  async monthToDateCostUsdByClient(now: Date) {
+    const out = allocateByClient(this.runs, now);
+    for (const [c, v] of Object.entries(this.baseMonthCostByClient)) out[c] = (out[c] ?? 0) + v;
+    return out;
+  }
+  async insertFacts(facts: FactRecord[]) {
+    this.facts.push(...facts);
+  }
+  async listFacts() {
+    return [...this.facts];
   }
   async close() {}
 }

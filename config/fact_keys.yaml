@@ -1,0 +1,35 @@
+# 正解データ（facts）の項目辞書。質問辞書の fact_keys と、取り込む CSV の key はここに載っているものだけ使える。
+# type:
+#   string  : 1つの値（例: 所属事務所）
+#   list    : 複数の値。CSV では「|」区切り（例: メンバー一覧）
+#   date    : YYYY-MM-DD
+#   release : 作品名と日付。CSV では「作品名|YYYY-MM-DD」
+#   text    : 自由記述（判定は LLM で行う）
+#   enum    : values のいずれか
+
+idol:
+  current_members: { type: list, label: 現メンバー }
+  former_members: { type: list, label: 卒業・脱退メンバー }
+  agency: { type: string, label: 所属事務所 }
+  formed_on: { type: date, label: 結成日 }
+  latest_release: { type: release, label: 最新リリース }
+  upcoming_live: { type: text, label: 今後のライブ予定 }
+
+music:
+  members: { type: list, label: メンバー }
+  signature_songs: { type: list, label: 代表曲 }
+  label: { type: string, label: 所属レーベル }
+  songwriting_credits: { type: text, label: 作詞作曲クレジット }
+  debut_on: { type: date, label: デビュー日 }
+  latest_release: { type: release, label: 最新リリース }
+  upcoming_live: { type: text, label: 今後のライブ・ツアー予定 }
+
+game:
+  publisher: { type: string, label: 運営会社 }
+  developer: { type: string, label: 開発会社 }
+  platforms: { type: list, label: 配信プラットフォーム }
+  genre: { type: string, label: ジャンル }
+  released_on: { type: date, label: リリース日 }
+  current_events: { type: list, label: 開催中のイベント }
+  latest_update: { type: text, label: 最新アップデート }
+  service_status: { type: enum, values: [active, end_announced, ended], label: サービス状況 }

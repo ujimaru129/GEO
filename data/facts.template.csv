@@ -1,0 +1,11 @@
+entity_id,key,value,valid_from,valid_to,source_url,checked_at,note
+idol-t1,current_members,山田花子|佐藤美咲|鈴木愛|高橋結衣,2025-04-01,,https://example.com/official/profile,2026-11-01,公式プロフィール（仮データ）
+idol-t1,current_members,山田花子|佐藤美咲|鈴木愛|高橋結衣|田中りん,2023-01-15,2025-03-31,https://example.com/official/news/graduation,2026-11-01,田中りん卒業前の体制
+idol-t1,former_members,田中りん,2025-04-01,,https://example.com/official/news/graduation,2026-11-01,
+idol-t1,agency,サンプルプロダクション,2023-01-15,,https://example.com/official/company,2026-11-01,
+idol-t1,latest_release,"サンプルシングル|2026-10-15",2026-10-15,,https://example.com/official/discography,2026-11-01,
+music-t1,label,サンプルレコーズ,,,https://example.com/artist/profile,2026-11-01,
+music-t1,signature_songs,曲A|曲B|曲C,,,https://example.com/artist/discography,2026-11-01,
+game-t1,publisher,サンプルゲームス株式会社,,,https://example.com/game/about,2026-11-01,
+game-t1,platforms,iOS|Android,,,https://example.com/game/about,2026-11-01,
+game-t1,service_status,active,,,https://example.com/game/news,2026-11-01,active / end_announced / ended

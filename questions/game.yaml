@@ -2,43 +2,52 @@ industry: game
 # variables: {title} = 計測対象（type: title）の正式名 / {competitor} = その競合
 questions:
   - id: game-disc-001
+    plans: [trial]
     category: discovery
     template: "おすすめのスマホRPGを5つ教えて"
     paraphrases: ["今面白いスマホのRPGは？"]
     priority: high
   - id: game-disc-002
+    plans: [trial]
     category: discovery
     template: "無料で遊べるおすすめのスマホゲームは？"
   - id: game-disc-003
+    plans: [trial]
     category: discovery
     template: "友達と協力プレイが楽しいスマホゲームを教えて"
   - id: game-disc-004
+    plans: [trial]
     category: discovery
     template: "ストーリーが面白いおすすめのソシャゲは？"
 
   - id: game-ent-001
+    plans: [trial]
     category: entity
     template: "{title}の運営会社はどこ？"
     variables: [title]
     fact_keys: [publisher, developer]
     priority: high
   - id: game-ent-002
+    plans: [trial]
     category: entity
     template: "{title}はどの機種で遊べる？"
     variables: [title]
     fact_keys: [platforms]
   - id: game-ent-003
+    plans: [trial]
     category: entity
     template: "{title}はどんなゲーム？"
     variables: [title]
     fact_keys: [genre, publisher, released_on]
 
   - id: game-cmp-001
+    plans: [trial]
     category: comparison
     template: "{title}と{competitor}の違いは？"
     variables: [title, competitor]
 
   - id: game-rec-001
+    plans: [trial]
     category: recency
     template: "{title}で今開催中のイベントは？"
     variables: [title]
@@ -50,6 +59,7 @@ questions:
     variables: [title]
     fact_keys: [latest_update]
   - id: game-rec-003
+    plans: [trial]
     category: recency
     template: "{title}はまだサービスしている？"
     variables: [title]

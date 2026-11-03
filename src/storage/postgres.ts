@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import type { FactRecord } from "../facts.ts";
 import { normalizeName } from "../normalize.ts";
 import type { EntitiesFile, Question } from "../questions/index.ts";
 import { jstMonthStart, type MeasurementRecord, type ResponseRecord, type RunRecord, type Storage } from "./types.ts";
@@ -20,8 +21,8 @@ export class PostgresStorage implements Storage {
   async syncDictionary(questions: Question[], file: EntitiesFile) {
     await this.sql.begin(async (sql) => {
       for (const c of file.clients) {
-        await sql`insert into clients (id, name) values (${c.id}, ${c.name})
-                  on conflict (id) do update set name = excluded.name`;
+        await sql`insert into clients (id, name, plan) values (${c.id}, ${c.name}, ${c.plan})
+                  on conflict (id) do update set name = excluded.name, plan = excluded.plan`;
       }
       for (const e of file.entities) {
         await sql`insert into entities (id, client_id, industry, role, type, official_name, ambiguous_flag, updated_at)
@@ -64,10 +65,10 @@ export class PostgresStorage implements Storage {
     await this.sql.begin(async (sql) => {
       await sql`insert into runs (id, measurement_id, prompt_key, question_id, entity_id, competitor_id, variant, prompt_text, engine, model,
                   trial_no, executed_at, status, attempts, latency_ms, input_tokens, output_tokens, reasoning_tokens, search_count,
-                  cost_usd, cost_jpy, error, config_hash)
+                  cost_usd, cost_jpy, cost_allocation, error, config_hash)
                 values (${r.id}, ${r.measurementId}, ${r.promptKey}, ${r.questionId}, ${r.entityId}, ${r.competitorId}, ${r.variant},
                   ${r.promptText}, ${r.engine}, ${r.model}, ${r.trialNo}, ${r.executedAt}, ${r.status}, ${r.attempts}, ${r.latencyMs},
-                  ${r.inputTokens}, ${r.outputTokens}, ${r.reasoningTokens}, ${r.searchCount}, ${r.costUsd}, ${r.costJpy}, ${r.error},
+                  ${r.inputTokens}, ${r.outputTokens}, ${r.reasoningTokens}, ${r.searchCount}, ${r.costUsd}, ${r.costJpy}, ${this.json(r.costAllocation)}, ${r.error},
                   ${r.configHash})`;
       if (response) {
         await sql`insert into responses (run_id, text, citations_json, request_json, raw_json)
@@ -84,6 +85,34 @@ export class PostgresStorage implements Storage {
   async monthToDateCostUsd(now: Date) {
     const [row] = await this.sql`select coalesce(sum(cost_usd), 0)::float8 as usd from runs where executed_at >= ${jstMonthStart(now).toISOString()}::timestamptz`;
     return Number(row.usd);
+  }
+
+  async monthToDateCostUsdByClient(now: Date) {
+    const rows = await this.sql`select a.key as client_id, sum(r.cost_usd * a.value::numeric)::float8 as usd
+      from runs r, jsonb_each_text(r.cost_allocation) a
+      where r.executed_at >= ${jstMonthStart(now).toISOString()}::timestamptz group by a.key`;
+    return Object.fromEntries(rows.map((r) => [r.client_id as string, Number(r.usd)]));
+  }
+
+  async insertFacts(facts: FactRecord[]) {
+    if (facts.length === 0) return;
+    await this.sql.begin(async (sql) => {
+      for (const f of facts) {
+        await sql`insert into facts (entity_id, key, value_json, valid_from, valid_to, source_url, checked_at, note, import_batch, created_at)
+                  values (${f.entityId}, ${f.key}, ${this.json(f.value)}, ${f.validFrom}, ${f.validTo}, ${f.sourceUrl}, ${f.checkedAt},
+                          ${f.note}, ${f.importBatch}, ${f.createdAt})`;
+      }
+    });
+  }
+
+  async listFacts(): Promise<FactRecord[]> {
+    const rows = await this.sql`select entity_id, key, value_json, to_char(valid_from, 'YYYY-MM-DD') as valid_from,
+      to_char(valid_to, 'YYYY-MM-DD') as valid_to, source_url, to_char(checked_at, 'YYYY-MM-DD') as checked_at, note, import_batch,
+      created_at from facts order by created_at, id`;
+    return rows.map((r) => ({
+      entityId: r.entity_id, key: r.key, value: r.value_json, validFrom: r.valid_from, validTo: r.valid_to, sourceUrl: r.source_url,
+      checkedAt: r.checked_at, note: r.note, importBatch: r.import_batch, createdAt: new Date(r.created_at).toISOString(),
+    }));
   }
 
   async close() {

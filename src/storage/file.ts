@@ -1,7 +1,8 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { EntitiesFile, Question } from "../questions/index.ts";
-import { jstMonthStart, type MeasurementRecord, type ResponseRecord, type RunRecord, type Storage } from "./types.ts";
+import type { FactRecord } from "../facts.ts";
+import { allocateByClient, jstMonthStart, type MeasurementRecord, type ResponseRecord, type RunRecord, type Storage } from "./types.ts";
 
 /**
  * DB 未設定でも計測を回せるローカル保存（JSONL 追記のみ）。
@@ -47,6 +48,15 @@ export class FileStorage implements Storage {
     return this.readLines<RunRecord>("runs.jsonl")
       .filter((r) => Date.parse(r.executedAt) >= start)
       .reduce((s, r) => s + r.costUsd, 0);
+  }
+  async monthToDateCostUsdByClient(now: Date) {
+    return allocateByClient(this.readLines<RunRecord>("runs.jsonl"), now);
+  }
+  async insertFacts(facts: FactRecord[]) {
+    for (const f of facts) this.append("facts.jsonl", f);
+  }
+  async listFacts() {
+    return this.readLines<FactRecord>("facts.jsonl");
   }
   async close() {}
 }

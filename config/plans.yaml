@@ -1,0 +1,40 @@
+# 顧客プランの定義。顧客へのプラン割り当ては data/entities.yaml の clients[].plan。
+# 頻度・試行回数・質問セットが原価に直結する。1問×1試行×4エンジン（解析込み）≒ 35円が目安。
+
+calendar:
+  # 日付・曜日はすべて日本時間で判定する
+  weekly_day: mon # weekly の実行日
+  twice_weekly_days: [mon, thu] # twice_weekly の実行日
+  biweekly_day: mon # biweekly は ISO 週番号が偶数の週のこの曜日
+  monthly_day: 1 # monthly の実行日（日付）
+
+plans:
+  trial:
+    label: お試し（月1万円）
+    frequency: monthly # 全質問の計測頻度: monthly / biweekly / weekly
+    priority_frequency: none # priority: high の追加計測: none / weekly / twice_weekly
+    trials: 3
+    engines: [openai, gemini, perplexity, claude]
+    max_competitors: 3
+    question_set: trial # trial = 質問辞書で plans に trial を含む質問のみ / all = 全質問
+    paraphrases: false # 言い換え版は計測しない
+    # 正解データとして扱う項目（業界別）。これ以外を登録すると取り込み時に警告
+    fact_keys:
+      idol: [current_members, former_members, agency, latest_release]
+      music: [signature_songs, label, latest_release]
+      game: [publisher, platforms, service_status]
+    monthly_cost_cap_jpy: 3000 # 1社あたりの API 原価の上限。超えたらこの顧客の計測を止める
+    report: summary # summary = エンジン合計の傾向＋誤情報一覧
+
+  standard:
+    label: 標準
+    frequency: weekly
+    priority_frequency: twice_weekly
+    trials: 5
+    engines: [openai, gemini, perplexity, claude]
+    max_competitors: 3
+    question_set: all
+    paraphrases: true
+    fact_keys: all
+    monthly_cost_cap_jpy: 40000
+    report: full # エンジン別・カテゴリ別・推移・信頼区間

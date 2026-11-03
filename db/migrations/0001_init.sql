@@ -4,6 +4,7 @@
 create table clients (
   id text primary key,
   name text not null,
+  plan text not null, -- config/plans.yaml のプラン名
   created_at timestamptz not null default now()
 );
 
@@ -33,18 +34,27 @@ create table entity_relations (
   primary key (from_id, to_id, relation)
 );
 
+-- 正解データ。更新は上書きせず新しい行を追加する（created_at が登録日＝「反映日数」の起点）。
+-- 同じ (entity_id, key, valid_from) の行は最新の created_at が有効（facts_current）。
 create table facts (
   id bigint generated always as identity primary key,
   entity_id text not null references entities(id),
   key text not null,
   value_json jsonb not null,
-  valid_from date,
+  valid_from date, -- 現実世界で有効になった日（両端を含む）
   valid_to date, -- null = 現在も有効
   source_url text not null,
   checked_at date not null,
+  note text,
+  import_batch text not null,
   created_at timestamptz not null default now()
 );
 create index facts_entity_key on facts(entity_id, key);
+
+create view facts_current as
+select distinct on (entity_id, key, coalesce(valid_from, '-infinity'::date)) *
+from facts
+order by entity_id, key, coalesce(valid_from, '-infinity'::date), created_at desc, id desc;
 
 create table questions (
   id text primary key,
@@ -99,6 +109,7 @@ create table runs (
   search_count int,
   cost_usd numeric(12, 6) not null default 0,
   cost_jpy numeric(12, 2) not null default 0,
+  cost_allocation jsonb not null default '{}', -- 顧客ID → 按分割合
   error text,
   config_hash text not null references config_snapshots(hash),
   unique (measurement_id, prompt_key, engine, trial_no)
@@ -172,6 +183,14 @@ create table eval_results (
   run_at timestamptz not null default now(),
   primary key (analyzer_version, metric, run_at)
 );
+
+-- 顧客別の費用（按分後）
+create view client_monthly_cost as
+select date_trunc('month', r.executed_at_jst) as month, a.key as client_id, sum(r.cost_usd * a.value::numeric) as cost_usd,
+       sum(r.cost_jpy * a.value::numeric) as cost_jpy
+from (select *, executed_at at time zone 'Asia/Tokyo' as executed_at_jst from runs) r,
+     jsonb_each_text(r.cost_allocation) a
+group by 1, 2;
 
 -- 予算管理用: 当月の費用
 create view monthly_cost as
