@@ -43,11 +43,14 @@ create table facts (
   value_json jsonb not null,
   valid_from date, -- 現実世界で有効になった日（両端を含む）
   valid_to date, -- null = 現在も有効
-  source_url text not null,
+  source_url text, -- 顧客の申告で公開情報がない場合のみ null
+  source_type text not null default 'public' check (source_type in ('public', 'client_provided')),
+  public_from date, -- 公表日。これより前の AI の回答には判定に使わない（null = 公表済み）
   checked_at date not null,
   note text,
-  import_batch text not null,
-  created_at timestamptz not null default now()
+  import_batch text not null, -- CSV の取り込みID、または fact_submissions の ID
+  created_at timestamptz not null default now(),
+  check (source_type = 'client_provided' or source_url is not null)
 );
 create index facts_entity_key on facts(entity_id, key);
 

@@ -12,6 +12,24 @@
 | 並列実行・リトライ（最大3回）・費用記録・月間予算上限 | `src/runner/`, `config/measurement.yaml` |
 | 顧客プラン（頻度・試行回数・質問セット・原価上限） | `config/plans.yaml`, `src/plans.ts` |
 | 正解データ（facts）の CSV 取り込み | `config/fact_keys.yaml`, `src/facts.ts`, `data/facts.template.csv` |
+| 画面のための仕組み（専用URL・社内メンバー・記入依頼と承認・確認履歴） | `db/migrations/0002_app.sql`, `src/app/` |
+
+## 画面と仕組み（2026-11-03 確定）
+
+設計ページ: https://claude.ai/artifact/U7sajCRw1nh9qsZxhXWzi2
+
+| 決定事項 | 実装 |
+| --- | --- |
+| 顧客は専用URL（＋月次PDF）でレポートを見る。ログインなし | `report_links`（トークンはハッシュのみ保存、顧客ごとに有効なURLは1つ）、`src/app/report-links.ts` |
+| 運営コンソールは社内チームの複数人が使う | `staff_members`（Supabase のメールログイン＋許可リスト）。確認・承認は誰がいつかを記録 |
+| 「誤り」判定と Lite の助言は社内が確認してから公開 | `claim_reviews`、`report_advice` |
+| Lite のレポートにも改善の助言を含める | `report_advice`（生成はフェーズD） |
+| 正解データは社内・顧客の両方から入力 | 社内: CSV / フォーム（`prepareStaffFact`）。顧客: 記入依頼 → 記入 → 社内承認（`fact_requests`, `fact_submissions`, `src/app/fact-requests.ts`） |
+
+- 顧客の記入で出典URLがないものは「顧客の申告」（`source_type = client_provided`）として記録する
+- 未発表の情報は公表日（`public_from`）を入れ、それより前の AI の回答の判定には使わない
+- 承認時に「古い値を終了して承認」を選ぶと、現在の値の valid_to を自動で閉じる（卒業・移籍）
+- 顧客も分からない項目は `unknown` で閉じ、判定は「照合不能」のまま
 
 ## 顧客プラン
 
@@ -46,6 +64,7 @@
 | value | 一覧は `A\|B\|C`、日付は `YYYY-MM-DD`、リリースは `作品名\|YYYY-MM-DD` |
 | valid_from / valid_to | 現実世界で有効だった期間（両端を含む）。現在も有効なら valid_to は空 |
 | source_url / checked_at | 出典URL（必須）と確認日 |
+| public_from | 公表日（任意）。未発表の情報は、この日より前の AI の回答の判定に使わない |
 | note | 任意のメモ |
 
 - エラーが1件でもあれば何も登録しない（行番号付きで表示）
@@ -92,5 +111,5 @@ npm run estimate  # 月間予算のシナリオ比較
 - `data/entities.yaml` は仮データ。テスト対象5組と競合が決まったら差し替える
 - Gemini のレスポンス形式は公式ドキュメントを取得できていないため、実キーでの疎通時に確認する
 - 定期実行（Vercel Cron + QStash）は未実装。現状は `npm run measure` を毎日1回実行する想定
-- 正解データの管理画面は未実装（スプレッドシート → CSV 取り込みで運用）
+- 画面（顧客レポート・顧客入力フォーム・運営コンソール）は未実装。仕組み（DB・ロジック）のみ実装済み
 - `scripts/estimate-budget.ts` の単価は `config/pricing.json`（OpenAI flex の割引は未反映＝保守的）
