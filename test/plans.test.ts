@@ -36,6 +36,7 @@ test("日本時間で計測日を判定する（2026-11-02 は月曜、11-05 は
   assert.equal(isDue("monthly", jst("2026-12-01"), cal), true);
   assert.equal(isDue("monthly", jst("2026-12-02"), cal), false);
   assert.equal(isDue("none", jst("2026-11-02"), cal), false);
+  assert.equal(isDue("once", jst("2026-12-01"), cal), false);
   // ISO 週: 2026-11-02 は第45週（奇数）、11-09 は第46週（偶数）
   assert.equal(isDue("biweekly", jst("2026-11-02"), cal), false);
   assert.equal(isDue("biweekly", jst("2026-11-09"), cal), true);
@@ -54,12 +55,11 @@ test("お試しプラン: trial タグの質問だけ・言い換えなし。発
   assert.ok(trialOwn.length >= 10 && trialOwn.length <= 15);
 });
 
-test("定期実行: 月初の月曜は全員、普通の木曜は標準の重要質問だけ", () => {
+test("定期実行: 単発のお試しは含めない。月曜は通常の全質問、木曜は通常の重要質問だけ", () => {
   // 2026-06-01 は月曜かつ1日
-  const both = selectPrompts(prompts, file, config.plans, { kind: "scheduled", now: jst("2026-06-01") });
-  assert.ok(both.some((s) => s.clientIds.includes("try")));
-  const shared = both.find((s) => s.prompt.key === "idol-disc-001|v0|-|-")!;
-  assert.equal(shared.trials, 5); // 標準とお試しの最大
+  const mon = selectPrompts(prompts, file, config.plans, { kind: "scheduled", now: jst("2026-06-01") });
+  assert.ok(mon.length > 0);
+  assert.ok(mon.every((s) => s.clientIds.join() === "std"));
   // 2026-11-05 は木曜
   const thu = selectPrompts(prompts, file, config.plans, { kind: "scheduled", now: jst("2026-11-05") });
   assert.ok(thu.length > 0);
@@ -68,7 +68,7 @@ test("定期実行: 月初の月曜は全員、普通の木曜は標準の重要
   assert.equal(selectPrompts(prompts, file, config.plans, { kind: "scheduled", now: jst("2026-11-03") }).length, 0);
 });
 
-test("お試しプランの月額原価の見積もりが上限内に収まる", () => {
+test("お試し（単発）は --clients 指定の手動計測で実行でき、1回の原価が上限内に収まる", () => {
   const sel = selectPrompts(prompts, file, config.plans, { kind: "full" }, { clients: ["mus"] });
   const est = estimatePlan(buildPlan(sel), config.engines);
   const jpy = est.byClient.mus * config.measurement.budget.fx_jpy_per_usd;

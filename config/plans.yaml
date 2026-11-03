@@ -1,4 +1,6 @@
 # 顧客プランの定義。顧客へのプラン割り当ては data/entities.yaml の clients[].plan。
+# 価格はプランごとの固定料金（請求は案件ごとに按分しない）。
+# runs.cost_allocation の按分は社内の原価把握用で、請求には使わない。
 # 頻度・試行回数・質問セットが原価に直結する。1問×1試行×4エンジン（解析込み）≒ 35円が目安。
 
 calendar:
@@ -9,25 +11,29 @@ calendar:
   monthly_day: 1 # monthly の実行日（日付）
 
 plans:
+  # お試し: 単発計測。定期実行には含めず、受注時に手動で1回実行する
+  #   npm run measure -- --scope full --clients <顧客ID>
+  # 【要検討】試行回数・質問数・正解データの範囲・正解データの入力者
   trial:
-    label: お試し（月1万円）
-    frequency: monthly # 全質問の計測頻度: monthly / biweekly / weekly
-    priority_frequency: none # priority: high の追加計測: none / weekly / twice_weekly
+    label: お試し（単発）
+    frequency: once
+    priority_frequency: none
     trials: 3
     engines: [openai, gemini, perplexity, claude]
     max_competitors: 3
-    question_set: trial # trial = 質問辞書で plans に trial を含む質問のみ / all = 全質問
-    paraphrases: false # 言い換え版は計測しない
-    # 正解データとして扱う項目（業界別）。これ以外を登録すると取り込み時に警告
-    fact_keys:
+    question_set: trial # 質問辞書で plans に trial を含む質問のみ
+    paraphrases: false
+    fact_keys: # 【要検討】正解データとして扱う項目（業界別）
       idol: [current_members, former_members, agency, latest_release]
       music: [signature_songs, label, latest_release]
       game: [publisher, platforms, service_status]
-    monthly_cost_cap_jpy: 3000 # 1社あたりの API 原価の上限。超えたらこの顧客の計測を止める
-    report: summary # summary = エンジン合計の傾向＋誤情報一覧
+    monthly_cost_cap_jpy: 3000 # 1社あたりの API 原価の上限（暴走防止）
+    report: summary # エンジン合計の傾向＋誤情報一覧
+    human_support: false
 
+  # 通常: 月額サブスクリプション
   standard:
-    label: 標準
+    label: 通常（月額）
     frequency: weekly
     priority_frequency: twice_weekly
     trials: 5
@@ -38,3 +44,20 @@ plans:
     fact_keys: all
     monthly_cost_cap_jpy: 40000
     report: full # エンジン別・カテゴリ別・推移・信頼区間
+    human_support: false
+
+  # プロ: 月額サブスクリプション＋人によるサポート
+  # 【要検討】計測内容を通常と変えるか（競合数・重要質問の頻度など）。現状は通常と同じ計測
+  pro:
+    label: プロ（月額・サポート付き）
+    frequency: weekly
+    priority_frequency: twice_weekly
+    trials: 5
+    engines: [openai, gemini, perplexity, claude]
+    max_competitors: 3
+    question_set: all
+    paraphrases: true
+    fact_keys: all
+    monthly_cost_cap_jpy: 40000
+    report: full
+    human_support: true

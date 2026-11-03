@@ -83,7 +83,8 @@ export const weekdayIndex = (d: Weekday) => WEEKDAYS.indexOf(d);
 
 export const planSchema = z.object({
   label: z.string(),
-  frequency: z.enum(["monthly", "biweekly", "weekly"]),
+  /** once = 単発（定期実行では計測せず、--clients を指定して手動で1回だけ実行する） */
+  frequency: z.enum(["once", "monthly", "biweekly", "weekly"]),
   priority_frequency: z.enum(["none", "weekly", "twice_weekly"]),
   trials: z.number().int().min(1).max(20),
   engines: z.array(z.enum(ENGINE_NAMES)).min(1),
@@ -93,6 +94,8 @@ export const planSchema = z.object({
   fact_keys: z.union([z.literal("all"), z.record(z.string(), z.array(z.string()))]),
   monthly_cost_cap_jpy: z.number().positive(),
   report: z.enum(["summary", "full"]),
+  /** 人によるサポート（定例・訂正依頼の代行など）の有無。システムの計測内容には影響しない */
+  human_support: z.boolean().default(false),
 });
 export type Plan = z.infer<typeof planSchema>;
 

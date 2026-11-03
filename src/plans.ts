@@ -23,6 +23,7 @@ export function isDue(
   const c = jstCalendar(now);
   switch (frequency) {
     case "none":
+    case "once": // 単発プランは定期実行に含めない（手動で実行）
       return false;
     case "weekly":
       return c.weekday === weekdayIndex(cal.weekly_day);
