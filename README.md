@@ -8,5 +8,5 @@
 node --experimental-strip-types --no-warnings scripts/estimate-budget.ts
 ```
 
-- 単価: `config/pricing.json`（`status: unverified` は二次情報。各社管理画面で確認して更新する）
+- 単価: `config/pricing.json`（各社公式ページで確認済み。出典URLは同ファイル内 `sources`）
 - 質問数・試行回数・トークン前提: `scripts/estimate-budget.ts` 冒頭の定数

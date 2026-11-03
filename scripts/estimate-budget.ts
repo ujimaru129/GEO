@@ -7,11 +7,8 @@ type EnginePrice = {
   input_per_mtok: number;
   output_per_mtok: number;
   search_per_1k?: number;
-  search_unit?: "call" | "query" | "search";
   search_free_per_month?: number;
-  request_per_1k?: number;
-  search_content_billed_as_input: boolean;
-  status: string;
+  search_content_vendor: "openai" | "claude" | "perplexity" | null; // null = 検索結果の入力トークンは無料
 };
 
 const pricing = JSON.parse(
@@ -26,14 +23,14 @@ const ASSUMPTIONS = {
     outputTokens: 1500,
     reasoningTokens: 1000, // 思考型モデルの非表示出力（出力単価で課金）
     searchesPerCall: 2,
-    contentTokensPerSearch: { openai: 4000, claude: 10000 }, // 検索結果が入力として課金される分
+    contentTokensPerSearch: { openai: 4000, claude: 10000, perplexity: 3000 }, // 検索結果が入力として課金される分
   },
   pessimistic: {
     promptTokens: 100,
     outputTokens: 2500,
     reasoningTokens: 3000,
     searchesPerCall: 4,
-    contentTokensPerSearch: { openai: 6000, claude: 15000 },
+    contentTokensPerSearch: { openai: 6000, claude: 15000, perplexity: 5000 },
   },
 } as const;
 type Assumption = (typeof ASSUMPTIONS)[keyof typeof ASSUMPTIONS];
@@ -52,23 +49,20 @@ const SCENARIOS = {
 };
 
 const ENGINE_SETS: Record<string, string[]> = {
-  "一般ユーザー準拠": ["openai_gpt55", "gemini_3_flash", "perplexity_sonar", "claude_sonnet55"],
-  "節約モデル": ["openai_gpt5mini", "gemini_3_flash", "perplexity_sonar", "claude_haiku55"],
+  "一般ユーザー準拠": ["openai_gpt61_sol", "gemini_38_flash", "perplexity_sonar", "claude_sonnet55"],
+  "節約モデル": ["openai_gpt6_luna", "gemini_38_flash", "perplexity_sonar", "claude_haiku55"],
+  "最上位モデル": ["openai_gpt6_astra", "gemini_31_pro", "perplexity_sonar", "claude_sonnet55"],
 };
 
 function perCall(key: string, a: Assumption) {
   const p: EnginePrice = pricing.engines[key];
-  const vendor = key.startsWith("openai") ? "openai" : key.startsWith("claude") ? "claude" : null;
-  const contentTokens =
-    p.search_content_billed_as_input && vendor ? a.searchesPerCall * a.contentTokensPerSearch[vendor] : 0;
-  const isReasoning = !key.startsWith("perplexity_sonar") || key.endsWith("pro");
+  const vendor = p.search_content_vendor;
+  const contentTokens = vendor ? a.searchesPerCall * a.contentTokensPerSearch[vendor] : 0;
   const inTok = a.promptTokens + contentTokens;
-  const outTok = a.outputTokens + (isReasoning ? a.reasoningTokens : 0);
+  const outTok = a.outputTokens + a.reasoningTokens;
   const tokens = (inTok * p.input_per_mtok + outTok * p.output_per_mtok) / 1e6;
-  const searches = p.search_per_1k
-    ? (a.searchesPerCall * p.search_per_1k) / 1000
-    : 0;
-  const request = p.request_per_1k ? p.request_per_1k / 1000 : 0;
+  const searches = p.search_per_1k ? (a.searchesPerCall * p.search_per_1k) / 1000 : 0;
+  const request = 0;
   return { tokens, searches, request, total: tokens + searches + request, searchCount: a.searchesPerCall };
 }
 
@@ -107,7 +101,7 @@ for (const [aName, a] of Object.entries(ASSUMPTIONS)) {
   for (const key of new Set(Object.values(ENGINE_SETS).flat())) {
     const c = perCall(key, a);
     console.log(
-      `  ${pricing.engines[key].label}: ${usd(c.total)} (tokens ${usd(c.tokens)} / search ${usd(c.searches)} / request ${usd(c.request)})`,
+      `  ${pricing.engines[key].label}: ${usd(c.total)} (tokens ${usd(c.tokens)} / search ${usd(c.searches)})`,
     );
   }
   for (const setName of Object.keys(ENGINE_SETS)) {

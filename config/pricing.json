@@ -1,67 +1,67 @@
 {
-  "_note": "単価はUSD。verified=公式ページで確認済み / unverified=二次情報（各社管理画面で要確認）。確認日 2026-11-03",
+  "_note": "単価はUSD。すべて公式ページで確認（2026-11-03）。出典は sources を参照。",
   "fx_jpy_per_usd": 155,
+  "sources": {
+    "openai": "https://developers.openai.com/api/docs/pricing",
+    "gemini": "https://cloud.google.com/vertex-ai/generative-ai/pricing（Gemini 3以降のグラウンディング料金。ai.google.dev は aistudio.google.com へ転送され未取得）",
+    "perplexity": "https://docs.perplexity.ai/docs/getting-started/pricing , https://docs.perplexity.ai/docs/agent-api/models",
+    "claude": "https://platform.claude.com/docs/en/about-claude/pricing"
+  },
   "engines": {
-    "openai_gpt55": {
-      "label": "ChatGPT系 GPT-5.5（主力）",
-      "input_per_mtok": 5, "output_per_mtok": 30,
-      "search_per_1k": 10, "search_unit": "call",
-      "search_content_billed_as_input": true,
-      "status": "unverified"
+    "openai_gpt61_sol": {
+      "label": "ChatGPT系 gpt-6.1-sol",
+      "input_per_mtok": 2, "output_per_mtok": 10,
+      "search_per_1k": 10,
+      "search_content_vendor": "openai",
+      "note": "Web search: $10/1k calls + 検索コンテンツは入力単価で課金"
     },
-    "openai_gpt5mini": {
-      "label": "ChatGPT系 GPT-5 mini",
-      "input_per_mtok": 0.25, "output_per_mtok": 2,
-      "search_per_1k": 10, "search_unit": "call",
-      "search_content_billed_as_input": true,
-      "status": "unverified"
+    "openai_gpt6_astra": {
+      "label": "ChatGPT系 gpt-6-astra（最上位）",
+      "input_per_mtok": 10, "output_per_mtok": 50,
+      "search_per_1k": 10,
+      "search_content_vendor": "openai"
     },
-    "gemini_3_pro": {
-      "label": "Gemini 3 Pro",
+    "openai_gpt6_luna": {
+      "label": "ChatGPT系 gpt-6-luna（小型）",
+      "input_per_mtok": 0.1, "output_per_mtok": 0.5,
+      "search_per_1k": 10,
+      "search_content_vendor": "openai"
+    },
+    "gemini_38_flash": {
+      "label": "Gemini 3.8 Flash（2027年以降の通常価格）",
+      "input_per_mtok": 1.5, "output_per_mtok": 7.5,
+      "search_per_1k": 14, "search_free_per_month": 5000,
+      "search_content_vendor": null,
+      "note": "2026-12-31までは導入価格 $0.75/$3.75。グラウンディングは検索クエリ単位 $14/1k、月5,000クエリ無料、検索由来の入力トークンは無料"
+    },
+    "gemini_31_pro": {
+      "label": "Gemini 3.1 Pro",
       "input_per_mtok": 2, "output_per_mtok": 12,
-      "search_per_1k": 14, "search_unit": "query", "search_free_per_month": 5000,
-      "search_content_billed_as_input": false,
-      "status": "unverified"
-    },
-    "gemini_3_flash": {
-      "label": "Gemini 3 Flash",
-      "input_per_mtok": 0.75, "output_per_mtok": 3.75,
-      "search_per_1k": 14, "search_unit": "query", "search_free_per_month": 5000,
-      "search_content_billed_as_input": false,
-      "status": "unverified"
+      "search_per_1k": 14, "search_free_per_month": 5000,
+      "search_content_vendor": null
     },
     "perplexity_sonar": {
-      "label": "Perplexity Sonar（medium context）",
-      "input_per_mtok": 1, "output_per_mtok": 1,
-      "request_per_1k": 8,
-      "search_content_billed_as_input": false,
-      "status": "unverified"
-    },
-    "perplexity_sonar_pro": {
-      "label": "Perplexity Sonar Pro（medium context）",
-      "input_per_mtok": 3, "output_per_mtok": 15,
-      "request_per_1k": 10,
-      "search_content_billed_as_input": false,
-      "status": "unverified"
+      "label": "Perplexity sonar（Agent API）",
+      "input_per_mtok": 0.25, "output_per_mtok": 2.5,
+      "search_per_1k": 2.5,
+      "search_content_vendor": "perplexity",
+      "note": "Sonar Chat CompletionsはAgent APIへ移行。web_search $2.50/1k回。検索結果が入力トークンになる量は実測で確認"
     },
     "claude_sonnet55": {
       "label": "Claude Sonnet 5.5",
       "input_per_mtok": 2, "output_per_mtok": 10,
-      "search_per_1k": 10, "search_unit": "search",
-      "search_content_billed_as_input": true,
-      "status": "verified"
+      "search_per_1k": 10,
+      "search_content_vendor": "claude"
     },
     "claude_haiku55": {
       "label": "Claude Haiku 5.5",
       "input_per_mtok": 0.1, "output_per_mtok": 0.5,
-      "search_per_1k": 10, "search_unit": "search",
-      "search_content_billed_as_input": true,
-      "status": "verified"
+      "search_per_1k": 10,
+      "search_content_vendor": "claude"
     }
   },
   "analyzer": {
     "label": "解析（Claude Sonnet 5.5で主張抽出・事実判定）",
-    "input_per_mtok": 2, "output_per_mtok": 10,
-    "status": "verified"
+    "input_per_mtok": 2, "output_per_mtok": 10
   }
 }
