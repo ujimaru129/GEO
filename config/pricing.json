@@ -1,0 +1,67 @@
+{
+  "_note": "単価はUSD。verified=公式ページで確認済み / unverified=二次情報（各社管理画面で要確認）。確認日 2026-11-03",
+  "fx_jpy_per_usd": 155,
+  "engines": {
+    "openai_gpt55": {
+      "label": "ChatGPT系 GPT-5.5（主力）",
+      "input_per_mtok": 5, "output_per_mtok": 30,
+      "search_per_1k": 10, "search_unit": "call",
+      "search_content_billed_as_input": true,
+      "status": "unverified"
+    },
+    "openai_gpt5mini": {
+      "label": "ChatGPT系 GPT-5 mini",
+      "input_per_mtok": 0.25, "output_per_mtok": 2,
+      "search_per_1k": 10, "search_unit": "call",
+      "search_content_billed_as_input": true,
+      "status": "unverified"
+    },
+    "gemini_3_pro": {
+      "label": "Gemini 3 Pro",
+      "input_per_mtok": 2, "output_per_mtok": 12,
+      "search_per_1k": 14, "search_unit": "query", "search_free_per_month": 5000,
+      "search_content_billed_as_input": false,
+      "status": "unverified"
+    },
+    "gemini_3_flash": {
+      "label": "Gemini 3 Flash",
+      "input_per_mtok": 0.75, "output_per_mtok": 3.75,
+      "search_per_1k": 14, "search_unit": "query", "search_free_per_month": 5000,
+      "search_content_billed_as_input": false,
+      "status": "unverified"
+    },
+    "perplexity_sonar": {
+      "label": "Perplexity Sonar（medium context）",
+      "input_per_mtok": 1, "output_per_mtok": 1,
+      "request_per_1k": 8,
+      "search_content_billed_as_input": false,
+      "status": "unverified"
+    },
+    "perplexity_sonar_pro": {
+      "label": "Perplexity Sonar Pro（medium context）",
+      "input_per_mtok": 3, "output_per_mtok": 15,
+      "request_per_1k": 10,
+      "search_content_billed_as_input": false,
+      "status": "unverified"
+    },
+    "claude_sonnet55": {
+      "label": "Claude Sonnet 5.5",
+      "input_per_mtok": 2, "output_per_mtok": 10,
+      "search_per_1k": 10, "search_unit": "search",
+      "search_content_billed_as_input": true,
+      "status": "verified"
+    },
+    "claude_haiku55": {
+      "label": "Claude Haiku 5.5",
+      "input_per_mtok": 0.1, "output_per_mtok": 0.5,
+      "search_per_1k": 10, "search_unit": "search",
+      "search_content_billed_as_input": true,
+      "status": "verified"
+    }
+  },
+  "analyzer": {
+    "label": "解析（Claude Sonnet 5.5で主張抽出・事実判定）",
+    "input_per_mtok": 2, "output_per_mtok": 10,
+    "status": "verified"
+  }
+}
