@@ -13,6 +13,7 @@ export default async function Sources({ params }: { params: Promise<{ token: str
   const top = v.sources[0]?.share ?? 1;
   return (
     <section className="r-section" aria-labelledby="s-src">
+      <span className="o-tag">CITATION SOURCES</span>
       <header>
         <h2 id="s-src">AIが参照したサイト</h2>
         <span className="small muted mono">今週 ・ 引用 {v.citationTotal}件</span>

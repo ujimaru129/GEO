@@ -16,6 +16,7 @@ export default async function Competitors({ params }: { params: Promise<{ token:
   return (
     <>
       <section className="r-section" aria-labelledby="s-comp">
+        <span className="o-tag">COMPETITIVE POSITION</span>
         <header>
           <h2 id="s-comp">おすすめに挙がる割合</h2>
           <span className="small muted mono">4エンジン合計 ・ n={me.rate.n}</span>
@@ -32,6 +33,7 @@ export default async function Competitors({ params }: { params: Promise<{ token:
         )}
       </section>
       <section className="r-section" aria-labelledby="s-share">
+        <span className="o-tag">SHARE OF AI</span>
         <header>
           <h2 id="s-share">シェア・オブ・AI</h2>
         </header>

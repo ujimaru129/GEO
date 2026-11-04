@@ -13,6 +13,7 @@ export default async function Misinfo({ params }: { params: Promise<{ token: str
   const resolved = v.misinfo.filter((m) => !m.ongoing);
   return (
     <section className="r-section" aria-labelledby="s-misinfo">
+      <span className="o-tag">MISINFORMATION LOG</span>
       <header>
         <h2 id="s-misinfo">AIが誤って伝えていること</h2>
         <span className="small muted">

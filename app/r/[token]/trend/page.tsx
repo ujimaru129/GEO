@@ -15,13 +15,15 @@ export default async function Trend({ params }: { params: Promise<{ token: strin
   return (
     <>
       <section className="r-section" aria-labelledby="s-t-share">
+        <span className="o-tag">TREND / SHARE OF AI</span>
         <header>
           <h2 id="s-t-share">推薦（シェア・オブ・AI）</h2>
           <span className="small muted">週ごと ・ 横軸は週の初日</span>
         </header>
-        <TrendLine label="シェア・オブ・AIの推移" points={v.trend.map((t, i) => ({ x: xs[i], v: t.share }))} max={0.5} />
+        <TrendLine label="シェア・オブ・AIの推移" points={v.trend.map((t, i) => ({ x: xs[i], v: t.share }))} max={0.6} />
       </section>
       <section className="r-section" aria-labelledby="s-t-acc">
+        <span className="o-tag">TREND / ACCURACY</span>
         <header>
           <h2 id="s-t-acc">正確性（正しく答えた割合）</h2>
         </header>

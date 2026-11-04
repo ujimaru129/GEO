@@ -12,6 +12,7 @@ export default async function Advice({ params }: { params: Promise<{ token: stri
   const a = v.advice;
   return (
     <section className="r-section" aria-labelledby="s-adv">
+      <span className="o-tag">ACTION PLAN</span>
       <header>
         <h2 id="s-adv">結果を受けて、やるべきこと</h2>
         {a?.approvedAt && <span className="small muted mono">{ymdSlash(a.approvedAt.slice(0, 10))} 時点</span>}

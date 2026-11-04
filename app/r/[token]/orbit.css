@@ -1,0 +1,177 @@
+/* ORBIT ― 顧客向け「AI観測レポート」
+   方針: 観測所の計器盤。暗い背景に計器のライム1色、課題は暖色。
+   等幅の英字ラベル（01 / OVERVIEW）で区画を示し、数字を大きく見せる。
+   ダークのみの単一テーマ（意図的）。色はすべて下のトークンから取る。 */
+.orbit {
+  --bg: #0f1411;
+  --panel: #171e19;
+  --panel-2: #1f2821;
+  --line: #303a32;
+  --line-2: #4a574d;
+  --text: #ecf1e8;
+  --text-2: #b6c1b5;
+  --text-3: #7f8b80;
+  --lime: #c6f36f;
+  --lime-dim: #8fae58;
+  --warm: #ffb08a;
+  --amber: #f0c56c;
+  --mint: #a6e3a8;
+  --plex: "IBM Plex Sans JP", "IBM Plex Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  --plex-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* 共通部品（globals.css）が使うトークンをレポート用に差し替える */
+  --paper: var(--bg);
+  --sheet: var(--panel);
+  --ink: var(--text);
+  --ink-2: var(--text-2);
+  --ink-3: var(--text-3);
+  --rule: var(--line);
+  --rule-soft: #242d26;
+  --ai: var(--lime);
+  --ai-wash: #253020;
+  --shu: var(--warm);
+  --bad: #ff917f;
+  --bad-wash: #3a221d;
+  --old: var(--amber);
+  --old-wash: #342b17;
+  --ok: var(--mint);
+  --ok-wash: #1c3022;
+  --f-mincho: var(--plex);
+  --f-gothic: var(--plex);
+  --f-mono: var(--plex-mono);
+
+  color-scheme: dark;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--plex);
+  font-size: 14.5px;
+}
+body:has(.orbit) { background: #0f1411; }
+.orbit a { color: var(--lime); }
+.orbit h1, .orbit h2, .orbit h3 { font-family: var(--plex); font-weight: 700; letter-spacing: -0.01em; }
+
+.o-tag { font: 11px/1.6 var(--plex-mono); letter-spacing: 0.12em; color: var(--text-3); text-transform: uppercase; }
+.o-tag em { font-style: normal; color: var(--lime); }
+.o-wrap { max-width: 1240px; margin: 0 auto; padding: 0 max(24px, env(safe-area-inset-right)) 0 max(24px, env(safe-area-inset-left)); }
+
+/* ヘッダー */
+.o-top { border-bottom: 1px solid var(--line); }
+.o-top .o-wrap { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.o-logo { display: flex; align-items: baseline; gap: 14px; }
+.o-logo b { font: 800 20px/1 var(--plex); letter-spacing: 0.22em; }
+.o-logo b i { font-style: normal; color: var(--lime); margin-right: 6px; letter-spacing: 0; }
+.o-client { text-align: right; display: grid; gap: 0; }
+.o-client span:first-child { font-size: 13px; color: var(--text-2); }
+
+/* ヒーロー（右の軌道図は、AIごとの出現率を表す） */
+.o-hero { position: relative; border-bottom: 1px solid var(--line); overflow: hidden; }
+.o-hero .o-wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 42%); gap: 24px; align-items: center; padding-block: 44px 34px; }
+.o-hero h1 { font-size: clamp(34px, 4.6vw, 64px); line-height: 1.08; letter-spacing: -0.045em; margin: 10px 0 8px; }
+.o-hero p { color: var(--text-2); font-size: 15px; }
+.o-hero .o-meta { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.o-orbit { width: 100%; height: auto; display: block; }
+.o-orbit .grid-dot { fill: #3d4a3f; }
+.o-orbit .ring { fill: none; stroke: var(--lime-dim); stroke-width: 1; opacity: 0.75; }
+.o-orbit .ring.faint { stroke-dasharray: 2 5; opacity: 0.6; }
+.o-orbit .planet { fill: var(--lime); }
+.o-orbit .core { fill: var(--bg); stroke: var(--lime); stroke-width: 1.5; }
+.o-orbit text { font: 10px var(--plex-mono); fill: var(--text-2); letter-spacing: 0.06em; }
+.o-orbit text.v { fill: var(--lime); }
+.o-hero .o-legend { font: 10.5px/1.6 var(--plex-mono); color: var(--text-3); letter-spacing: 0.06em; margin-top: 4px; text-align: right; }
+
+/* ナビ */
+.o-nav { border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px); }
+.o-nav .o-wrap { display: flex; gap: 2px 28px; overflow-x: auto; scrollbar-width: none; }
+.o-nav a { display: inline-flex; align-items: baseline; gap: 8px; padding: 14px 0 12px; color: var(--text-2); text-decoration: none; border-bottom: 2px solid transparent; white-space: nowrap; font-size: 14px; }
+.o-nav a .n { font: 10.5px var(--plex-mono); color: var(--text-3); letter-spacing: 0.08em; }
+.o-nav a:hover { color: var(--text); }
+.o-nav a[aria-current="page"] { color: var(--text); border-bottom-color: var(--lime); }
+.o-nav a[aria-current="page"] .n { color: var(--lime); }
+.o-nav .count { font: 11px var(--plex-mono); color: var(--warm); }
+
+.o-body { padding-block: 34px 72px; display: grid; gap: 40px; }
+.o-bar { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.o-bar h2 { font-size: 20px; }
+
+/* 指標カード（押すと説明が開く） */
+.o-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.o-card {
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--line); padding: 22px 22px 20px; display: grid; gap: 4px; align-content: start;
+  transition: border-color 0.15s, background 0.15s;
+}
+.o-card:hover, .o-card:focus-visible { border-color: var(--lime); background: var(--panel-2); outline: none; }
+.o-card h3 { font-size: 16px; margin: 14px 0 2px; }
+.o-num { font: 600 clamp(52px, 5.4vw, 78px)/1 var(--plex); letter-spacing: -0.06em; font-variant-numeric: tabular-nums; }
+.o-num span { font-size: 0.32em; margin-left: 6px; letter-spacing: 0; font-weight: 500; }
+.o-num.warm { color: var(--warm); }
+.o-track { height: 4px; background: #2e3a30; margin: 14px 0 8px; position: relative; }
+.o-track i { position: absolute; inset: 0 auto 0 0; background: var(--lime); }
+.o-track b { position: absolute; top: -3px; bottom: -3px; border-left: 1px solid var(--text-2); border-right: 1px solid var(--text-2); }
+.o-track.warm i { background: var(--warm); }
+.o-sub { font: 11.5px/1.6 var(--plex-mono); color: var(--text-3); letter-spacing: 0.04em; }
+.o-delta { font-size: 12.5px; margin-top: 2px; }
+.o-delta.up { color: var(--mint); }
+.o-delta.down { color: var(--warm); }
+.o-delta.flat { color: var(--text-3); }
+
+.o-dialog { background: var(--panel-2); color: var(--text); border: 1px solid var(--line-2); padding: 28px; max-width: min(460px, 90vw); }
+.o-dialog::backdrop { background: rgb(4 8 6 / 0.72); }
+.o-dialog h2 { font-size: 22px; margin: 6px 0 12px; }
+.o-dialog p { color: var(--text-2); line-height: 1.8; }
+.o-dialog button { margin-top: 18px; padding: 9px 20px; background: var(--lime); color: #142008; border: 0; cursor: pointer; font: 600 13px var(--plex); }
+
+.o-lower { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 12px; }
+.o-panel { background: var(--panel); border: 1px solid var(--line); padding: 22px; min-width: 0; display: grid; gap: 10px; align-content: start; }
+.o-panel h2 { font-size: 19px; margin-bottom: 6px; }
+.o-panel table.grid th { border-bottom-color: var(--line-2); }
+.o-note { border-top: 1px solid var(--line); padding: 13px 0 12px; display: grid; gap: 3px; }
+.o-note b { font: 500 11px var(--plex-mono); letter-spacing: 0.08em; color: var(--warm); }
+.o-note b.ok { color: var(--lime); }
+.o-note b.old { color: var(--amber); }
+.o-foot { font-size: 12.5px; color: var(--text-3); line-height: 1.7; max-width: 82ch; }
+
+/* 既存のページ部品を、パネル化して暗い盤面になじませる */
+.orbit .r-section { background: var(--panel); border: 1px solid var(--line); padding: 24px; }
+.orbit .r-section > header { border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+.orbit .r-section h2 { font-size: 20px; }
+.orbit .r-section .lead { font-size: 14px; }
+.orbit .ledger, .orbit .advice { border-top: 0; }
+.orbit .entry { border-bottom-color: var(--line); }
+.orbit .entry .k .fact { font-size: 15px; }
+.orbit .entry .said::before, .orbit .entry .truth::before { font-family: var(--plex-mono); font-size: 10.5px; letter-spacing: 0.1em; margin-right: 6px; }
+.orbit .entry .said::before { content: "AI"; color: var(--warm); }
+.orbit .entry .truth::before { content: "正しくは"; color: var(--lime); }
+.orbit .stamp { font-family: var(--plex-mono); font-size: 10px; transform: none; border-width: 1px; letter-spacing: 0.06em; }
+.orbit .verdict { font-family: var(--plex-mono); font-weight: 500; letter-spacing: 0.1em; }
+.orbit .adv .pri { font-family: var(--plex-mono); font-size: 13px; font-weight: 500; letter-spacing: 0.1em; padding-top: 4px; }
+.orbit .adv .pri.high { color: var(--warm); }
+.orbit .adv .pri.mid { color: var(--amber); }
+.orbit .adv .pri.low { color: var(--text-3); }
+.orbit .draft { background: var(--bg); border-color: var(--line); }
+.orbit .from-staff { background: var(--panel-2); border-left-color: var(--lime); }
+.orbit .chart .bar { fill: #4b584d; }
+.orbit .chart .bar.me { fill: var(--lime); }
+.orbit .chart .name.me { fill: var(--lime); }
+.orbit .chart .area { fill: var(--lime); opacity: 0.1; }
+.orbit .share-bar { background: #2b352d; }
+.orbit .share-bar i { background: var(--text-3); }
+.orbit .share-bar.official i { background: var(--lime); }
+.orbit input[type="text"], .orbit input[type="url"], .orbit input[type="date"], .orbit select, .orbit textarea { background: var(--bg); border-color: var(--line-2); color: var(--text); }
+.orbit .btn { background: transparent; color: var(--text); border-color: var(--line-2); }
+.orbit .btn:hover { background: var(--panel-2); }
+.orbit .btn.primary { background: var(--lime); color: #142008; border-color: var(--lime); font-weight: 600; }
+.orbit .btn.primary:hover { background: #d6fa92; }
+.orbit .notice { background: var(--ai-wash); }
+.orbit .demo-band { background: #26301f; color: var(--lime); font-family: var(--plex-mono); font-size: 11px; letter-spacing: 0.06em; }
+
+@media (max-width: 860px) {
+  .o-hero .o-wrap { grid-template-columns: 1fr; padding-block: 28px 24px; }
+  .o-hero .o-orbit-box { order: -1; max-width: 420px; }
+  .o-cards, .o-lower { grid-template-columns: 1fr; }
+  .o-card { padding: 16px; }
+  .o-num { font-size: 52px; }
+  .o-client span:last-child, .o-logo .o-tag { display: none; }
+  .orbit .r-section { padding: 16px; }
+}
