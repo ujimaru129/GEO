@@ -48,7 +48,7 @@ export default async function Requests({ params, searchParams }: { params: Promi
           {DONE_MESSAGES[done]}
         </p>
       )}
-      <div style={{ borderTop: "2px solid var(--ink)" }}>
+      <div style={{ borderTop: "1px solid var(--rule)" }}>
         {requests.map((r) => {
           const def = defs[r.key];
           const st = STATUS[r.status];

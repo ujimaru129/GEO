@@ -45,7 +45,7 @@ export default async function Facts({ searchParams }: { searchParams: Promise<{ 
               <p className="muted">確認待ちはありません。</p>
             ) : (
               pending.map((s) => (
-                <article key={s.id} className="review" style={{ borderTop: "2px solid var(--ink)" }}>
+                <article key={s.id} className="review">
                   <div style={{ display: "grid", gap: 6, minWidth: 0 }}>
                     <span className="who">
                       {s.entityName} ・ {s.factLabel} ・ 記入 <span className="mono">{jpDateTime(s.submittedAt)}</span>

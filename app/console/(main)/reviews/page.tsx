@@ -32,7 +32,7 @@ export default async function Reviews({ searchParams }: { searchParams: Promise<
         {items.length === 0 ? (
           <p className="muted">確認待ちはありません。</p>
         ) : (
-          <div style={{ borderTop: "2px solid var(--ink)" }}>
+          <div>
             {items.map((it) => (
               <article key={it.claimId} className="review">
                 <div style={{ display: "grid", gap: 8, minWidth: 0 }}>
@@ -81,7 +81,7 @@ export default async function Reviews({ searchParams }: { searchParams: Promise<
           <p className="muted">確認待ちはありません。</p>
         ) : (
           drafts.map((d) => (
-            <article key={d.id} className="review" style={{ borderTop: "2px solid var(--ink)" }}>
+            <article key={d.id} className="review">
               <div style={{ display: "grid", gap: 10, minWidth: 0 }}>
                 <span className="who">
                   {d.clientName} ・ 作成 <span className="mono">{jpDateTime(d.createdAt)}</span>

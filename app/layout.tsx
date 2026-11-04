@@ -1,14 +1,16 @@
-import "@fontsource/shippori-mincho-b1/700.css";
-import "@fontsource/shippori-mincho-b1/800.css";
-import "@fontsource/biz-udpgothic/400.css";
-import "@fontsource/biz-udpgothic/700.css";
+import "@fontsource/ibm-plex-sans-jp/400.css";
+import "@fontsource/ibm-plex-sans-jp/500.css";
+import "@fontsource/ibm-plex-sans-jp/700.css";
+import "@fontsource/ibm-plex-sans/600.css";
+import "@fontsource/ibm-plex-sans/700.css";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/500.css";
 import "./globals.css";
+import "./orbit.css";
 import type { Metadata, Viewport } from "next";
 
 export const metadata: Metadata = {
-  title: { default: "エンタメGEO", template: "%s ｜ エンタメGEO" },
+  title: { default: "ORBIT", template: "%s ｜ ORBIT" },
   robots: { index: false, follow: false },
 };
 

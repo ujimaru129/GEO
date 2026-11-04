@@ -17,12 +17,14 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
   const pendingSubs = clients.reduce((s, c) => s + c.pendingSubmissions, 0);
   return (
     <>
-      {isDemo() && <div className="demo-band">デモモード: 架空のデータです。操作はサーバーを再起動すると元に戻ります。</div>}
+      {isDemo() && <div className="demo-band">DEMO MODE ― 架空のデータです。操作はサーバーを再起動すると元に戻ります。</div>}
       <div className="console">
         <aside className="c-side">
           <div className="c-brand">
-            <b>エンタメGEO</b>
-            <span>運営コンソール</span>
+            <b>
+              <i>◉</i>ORBIT
+            </b>
+            <span className="o-tag">CONSOLE / 運営</span>
           </div>
           <nav className="c-nav" aria-label="運営メニュー">
             <NavLink href="/console" exact>顧客一覧</NavLink>

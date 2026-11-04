@@ -10,7 +10,9 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
   const { error } = await searchParams;
   return (
     <main className="login">
-      <span className="label">エンタメGEO ・ 運営コンソール</span>
+      <span className="o-tag">
+        <em>◉</em> ORBIT / CONSOLE
+      </span>
       <h1>ログイン</h1>
       <p className="muted small">登録された社内メンバーのメールアドレスに、ログイン用のリンクを送ります。</p>
       {error && <p className="notice bad">リンクの有効期限が切れたか、登録されていないアドレスです。もう一度お試しください。</p>}

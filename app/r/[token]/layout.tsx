@@ -1,9 +1,3 @@
-import "@fontsource/ibm-plex-sans-jp/400.css";
-import "@fontsource/ibm-plex-sans-jp/500.css";
-import "@fontsource/ibm-plex-sans-jp/700.css";
-import "@fontsource/ibm-plex-sans/600.css";
-import "@fontsource/ibm-plex-sans/700.css";
-import "./orbit.css";
 import { notFound } from "next/navigation";
 import { NavLink } from "../../../components/client-ui.tsx";
 import { OrbitGraphic } from "../../../components/orbit.tsx";

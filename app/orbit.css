@@ -158,7 +158,7 @@ body:has(.orbit) { background: #0f1411; }
 .orbit .share-bar { background: #2b352d; }
 .orbit .share-bar i { background: var(--text-3); }
 .orbit .share-bar.official i { background: var(--lime); }
-.orbit input[type="text"], .orbit input[type="url"], .orbit input[type="date"], .orbit select, .orbit textarea { background: var(--bg); border-color: var(--line-2); color: var(--text); }
+.orbit input[type="text"], .orbit input[type="email"], .orbit input[type="url"], .orbit input[type="date"], .orbit select, .orbit textarea { background: var(--bg); border-color: var(--line-2); color: var(--text); }
 .orbit .btn { background: transparent; color: var(--text); border-color: var(--line-2); }
 .orbit .btn:hover { background: var(--panel-2); }
 .orbit .btn.primary { background: var(--lime); color: #142008; border-color: var(--lime); font-weight: 600; }
@@ -166,7 +166,38 @@ body:has(.orbit) { background: #0f1411; }
 .orbit .notice { background: var(--ai-wash); }
 .orbit .demo-band { background: #26301f; color: var(--lime); font-family: var(--plex-mono); font-size: 11px; letter-spacing: 0.06em; }
 
+/* ---------- 運営コンソール（ORBIT の盤面に合わせる） ---------- */
+.orbit-console .console { background: linear-gradient(to right, var(--panel) 207px, var(--line) 207px 208px, transparent 208px); }
+.orbit-console .c-side { background: var(--panel); border-right-color: var(--line); }
+.orbit-console .c-brand b { font: 800 18px/1 var(--plex); letter-spacing: 0.22em; }
+.orbit-console .c-brand b i { font-style: normal; color: var(--lime); margin-right: 6px; letter-spacing: 0; }
+.orbit-console .c-brand .o-tag { margin-top: 6px; }
+.orbit-console .c-nav a { color: var(--text-2); }
+.orbit-console .c-nav a:hover { background: var(--panel-2); color: var(--text); }
+.orbit-console .c-nav a[aria-current="page"] { background: var(--panel-2); color: var(--text); border-left-color: var(--lime); font-weight: 500; }
+.orbit-console .c-nav .n, .orbit-console .todo { color: var(--warm); }
+.orbit-console .c-title { border-bottom: 1px solid var(--line); }
+.orbit-console .c-title h1 { font-size: 26px; letter-spacing: -0.02em; }
+.orbit-console .c-title .meta { font-family: var(--plex-mono); font-size: 11.5px; letter-spacing: 0.06em; color: var(--text-3); }
+.orbit-console .c-section { background: var(--panel); border: 1px solid var(--line); padding: 20px 22px; }
+.orbit-console .c-section > header { border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.orbit-console .c-section h2 { font-size: 17px; }
+.orbit-console table.grid th { font-family: var(--plex-mono); font-size: 10.5px; letter-spacing: 0.1em; color: var(--text-3); border-bottom-color: var(--line-2); }
+.orbit-console .meter { background: #2b352d; }
+.orbit-console .meter i { background: var(--lime); }
+.orbit-console .meter.warn i { background: var(--amber); }
+.orbit-console .meter.over i { background: var(--warm); }
+.orbit-console .review { border-bottom-color: var(--line); }
+.orbit-console .review blockquote { border-left-color: var(--line-2); }
+.orbit-console .token-box { background: var(--bg); border-color: var(--line-2); }
+.orbit-console .tabs-inline a[aria-current="page"] { border-color: var(--lime); }
+.orbit-console .kv dt { font-family: var(--plex-mono); font-size: 11px; letter-spacing: 0.06em; }
+.orbit-console .login { margin-top: 16vh; }
+.orbit-console .login h1 { font-size: 28px; letter-spacing: -0.02em; }
+
 @media (max-width: 860px) {
+  .orbit-console .console { background: none; }
+  .orbit-console .c-section { padding: 14px; }
   .o-hero .o-wrap { grid-template-columns: 1fr; padding-block: 28px 24px; }
   .o-hero .o-orbit-box { order: -1; max-width: 420px; }
   .o-cards, .o-lower { grid-template-columns: 1fr; }
