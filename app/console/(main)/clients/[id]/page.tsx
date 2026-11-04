@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { IssueLinkForm } from "../../../../../components/client-ui.tsx";
 import { jpDateTime, md, yen } from "../../../../../components/format.ts";
-import { INDUSTRY_LABEL } from "../../../../../src/web/common.ts";
 import { getRepo, isDemo } from "../../../../../src/web/index.ts";
 import { demoToken } from "../../../../../src/report/demo.ts";
 import { issueLinkAction } from "../../../actions.ts";
@@ -14,7 +13,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
     <>
       <div className="c-title">
         <h1>{c.name}</h1>
-        <span className="meta">{c.planLabel} ・ {INDUSTRY_LABEL[c.industry] ?? c.industry}</span>
+        <span className="meta">{c.planLabel} ・ {c.industryLabel}</span>
       </div>
       <section className="c-section">
         <dl className="kv">

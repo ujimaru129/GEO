@@ -4,7 +4,6 @@ import { OrbitGraphic } from "../../../components/orbit.tsx";
 import { isDemo } from "../../../src/web/index.ts";
 import { reportForToken } from "../../../src/web/report-data.ts";
 
-const SUBJECT: Record<string, string> = { idol: "このグループ", music: "このアーティスト", game: "この作品" };
 const dot = (ymd: string) => ymd.replaceAll("-", ".");
 
 export async function generateMetadata({ params }: { params: Promise<{ token: string }> }) {
@@ -54,7 +53,7 @@ export default async function ReportLayout({ children, params }: { children: Rea
               <em>●</em>　観測レポート　/　{once ? "SINGLE OBSERVATION" : v.period ? `WEEK ${v.period.weekNo}` : "準備中"}
             </span>
             <h1>{v.target.name}</h1>
-            <p>生成AIは、{SUBJECT[v.client.industry] ?? "この対象"}をどう語っているか。</p>
+            <p>生成AIは、{v.client.subject}をどう語っているか。</p>
             {v.period && weekEnd && (
               <div className="o-meta o-tag">
                 <span>{once ? `${dot(v.period.lastRunDate)} 観測` : `${dot(v.period.weekStart)} — ${dot(weekEnd).slice(5)}`}</span>

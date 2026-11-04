@@ -22,7 +22,7 @@ export default async function Competitors({ params }: { params: Promise<{ token:
           <span className="small muted mono">4エンジン合計 ・ n={me.rate.n}</span>
         </header>
         <p className="lead">
-          「おすすめは？」のような質問に対して、各グループ・作品が回答に挙がった割合です。細い線は95%区間で、線どうしが重なっている場合は差があるとは言い切れません。
+          「おすすめは？」のような質問に対して、各{v.client.noun}が回答に挙がった割合です。細い線は95%区間で、線どうしが重なっている場合は差があるとは言い切れません。
         </p>
         <CiBars rows={rows.map((r) => ({ name: r.entity.name, me: r.isTarget, m: r.rate }))} />
         {leader && !leader.isTarget && (
@@ -38,7 +38,7 @@ export default async function Competitors({ params }: { params: Promise<{ token:
           <h2 id="s-share">シェア・オブ・AI</h2>
         </header>
         <p className="lead">
-          {v.target.name}と競合{v.competitors.length}組への言及の合計のうち、{v.target.name}が占める割合は <b className="mono">{pctNum(v.share.value)}%</b> です。
+          {v.target.name}と競合{v.competitors.length}{v.client.counter}への言及の合計のうち、{v.target.name}が占める割合は <b className="mono">{pctNum(v.share.value)}%</b> です。
         </p>
       </section>
     </>

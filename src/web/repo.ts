@@ -12,6 +12,7 @@ export type ClientOverview = {
   plan: string;
   planLabel: string;
   industry: string;
+  industryLabel: string;
   targetName: string;
   nextRun: string | null; // YYYY-MM-DD。null = 受注時に手動
   lastRun: string | null;

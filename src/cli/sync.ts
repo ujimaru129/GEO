@@ -7,8 +7,8 @@ const args = parseArgs(process.argv.slice(2));
 const entitiesPath = typeof args.entities === "string" ? args.entities : `${ROOT}data/entities.yaml`;
 
 const config = loadConfig();
-const questions = loadQuestions(`${ROOT}questions`, config.factKeys);
-const entities = loadEntities(entitiesPath, config.plans);
+const questions = loadQuestions(`${ROOT}questions`, config.factKeys, config.industries);
+const entities = loadEntities(entitiesPath, config.plans, config.industries);
 const prompts = expandPrompts(questions, entities, config.plans);
 
 const { storage, label } = openStorage();

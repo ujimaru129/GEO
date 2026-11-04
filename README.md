@@ -50,6 +50,33 @@ npm run seed:demo      # デモデータ（架空の3社）を DB に入れる�
 - 顧客レポートのデザイン（ORBIT ／ AI観測レポート）: 観測所の計器盤。暗い盤面にライム1色、課題は暖色。等幅の英字ラベル、押すと説明が開く指標カード、AIごとの出現率を表す軌道図。書体は IBM Plex Sans JP / IBM Plex Mono（`app/orbit.css`）
 - 運営コンソールも同じ ORBIT の盤面（`app/orbit.css` の `.orbit-console`）。`app/globals.css` は共通部品
 
+## 業態の追加（エンタメ以外にも使う）
+
+計測・判定・画面は業態に依存しない。業態を足すときは設定ファイル3か所だけを触る（コード変更は不要）。
+
+1. `config/industries.yaml` に業態を追加（画面の言い回し: 業態名、「生成AIは、{subject}をどう語っているか。」、計測対象の呼び方、競合の数え方）
+2. `config/fact_keys.yaml` に正解データの項目を追加（例: 飲食なら住所・営業時間・定休日）
+3. `questions/<業態>.yaml` に質問辞書を作る
+
+計測対象の種類（`data/entities.yaml` の `type`）: group / artist / member / title / company / brand / product / store / service / event。質問の `{group}` `{product}` `{store}` などは、その種類の計測対象の名前に置き換わる。
+
+### 条件の変数（地域・時期・イベントなど）
+
+質問に `{region}` `{occasion}` のような変数を書くと、条件を変えて同じ質問を投げられる。
+
+```yaml
+- id: idol-disc-005
+  category: discovery
+  template: "{occasion}の{region}のアイドルイベントで一番注目されているのは？"
+  variables: [occasion, region]
+  contexts: { occasion: [大晦日] }      # 質問で値を固定
+  period: { from: "12-20", to: "12-31" } # この期間だけ計測（MM-DD は毎年。年またぎ可。YYYY-MM-DD はその年だけ）
+```
+
+- `contexts` に書かない変数（上の `region`）は、計測対象の `contexts`（例: `{ region: [渋谷, 新宿] }`）から値を取る。その値を登録した顧客だけが計測し、費用もその顧客で按分する
+- 指名系の質問でも使える（例: 「{group}の{region}での公演予定は？」→ 対象ごとに、その対象の地域だけ）
+- 実行した条件の値は `runs.context` に残る
+
 ## 顧客プラン
 
 `config/plans.yaml` で定義し、`data/entities.yaml` の `clients[].plan` で顧客に割り当てる。

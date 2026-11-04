@@ -1,5 +1,4 @@
 import { md, yen } from "../../../components/format.ts";
-import { INDUSTRY_LABEL } from "../../../src/web/common.ts";
 import { getRepo } from "../../../src/web/index.ts";
 
 export const metadata = { title: "顧客一覧" };
@@ -50,7 +49,7 @@ export default async function Clients() {
                     </td>
                     <td>
                       {c.targetName}
-                      <span className="faint small">（{INDUSTRY_LABEL[c.industry] ?? c.industry}）</span>
+                      <span className="faint small">（{c.industryLabel}）</span>
                     </td>
                     <td>{c.planLabel}</td>
                     <td className="mono nowrap">{c.nextRun ? dayLabel(c.nextRun) : <span className="faint">受注時</span>}</td>

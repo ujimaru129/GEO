@@ -38,7 +38,7 @@ export class PgRepo implements Repo {
 
   private async entitiesFile(): Promise<EntitiesFile> {
     const clients = await this.sql`select id, name, plan from clients order by id`;
-    const ents = await this.sql`select id, client_id, industry, role, type, official_name, ambiguous_flag from entities order by id`;
+    const ents = await this.sql`select id, client_id, industry, role, type, official_name, ambiguous_flag, contexts from entities order by id`;
     const rel = await this.sql`select from_id, to_id from entity_relations where relation = 'competitor'`;
     const aliases = await this.sql`select entity_id, alias from entity_aliases`;
     return {
@@ -47,6 +47,7 @@ export class PgRepo implements Repo {
         id: e.id, client_id: e.client_id, industry: e.industry, role: e.role, type: e.type, official_name: e.official_name,
         ambiguous: e.ambiguous_flag, aliases: aliases.filter((a) => a.entity_id === e.id).map((a) => a.alias),
         competitors: rel.filter((r) => r.from_id === e.id).map((r) => r.to_id),
+        contexts: e.contexts ?? {},
       })),
     };
   }
@@ -211,6 +212,7 @@ export class PgRepo implements Repo {
       (select count(*)::int from report_links where client_id = ${clientId} and revoked_at is null) as links`;
     return {
       id: c.id, name: c.name, plan: c.plan, planLabel: plan?.label.replace(/（.*）/, "") ?? c.plan, industry: t?.industry ?? "",
+      industryLabel: (t && this.config.industries[t.industry]?.label) || (t?.industry ?? ""),
       targetName: t?.official_name ?? "（対象未登録）", nextRun: nextRunDate(c.plan, this.config.plans, new Date()),
       lastRun: last ? ymd(last.at) : null, monthCostJpy: Number(cost?.jpy ?? 0), capJpy: plan?.monthly_cost_cap_jpy ?? 0,
       missingRate: last ? Number(last.missing) : null, pendingReviews: pr.n, pendingAdvice: counts.advice, openRequests: counts.requests,

@@ -20,6 +20,14 @@ questions:
     plans: [lite]
     category: discovery
     template: "アイドル初心者におすすめのグループは？"
+  # 条件の変数の例: occasion は質問で固定、region は計測対象に登録された地域から取る
+  # （その地域を登録した顧客だけが計測し、費用もその顧客で按分）。大晦日の前後だけ計測する
+  - id: idol-disc-005
+    category: discovery
+    template: "{occasion}の{region}のアイドルイベントで一番注目されているのは？"
+    variables: [occasion, region]
+    contexts: { occasion: [大晦日] }
+    period: { from: "12-20", to: "12-31" }
 
   - id: idol-ent-001
     plans: [lite]

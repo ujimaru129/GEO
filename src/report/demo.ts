@@ -237,7 +237,7 @@ export function buildDemoWorld(): DemoWorld {
 }
 
 function ent(id: string, client_id: string, industry: string, role: "target" | "competitor", type: "group" | "title" | "artist", official_name: string, competitors: string[] = []) {
-  return { id, client_id, industry, role, type, official_name, aliases: [], ambiguous: false, competitors };
+  return { id, client_id, industry, role, type, official_name, aliases: [], ambiguous: false, competitors, contexts: {} };
 }
 
 function pickDomain(p: Profile, r: () => number) {

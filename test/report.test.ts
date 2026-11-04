@@ -45,7 +45,7 @@ function rowsFor(clientId: string): ReportRows {
   const runs = w.runs.filter((r) => r.clientIds.includes(clientId));
   const ids = new Set(runs.map((r) => r.id));
   return {
-    client: { id: clientId, name: "x", plan: "pro", planLabel: "Pro", industry: t.industry, report: "full", humanSupport: true, trials: 5 },
+    client: { id: clientId, name: "x", plan: "pro", planLabel: "Pro", industry: t.industry, industryLabel: "アイドル", subject: "このグループ", noun: "グループ", counter: "組", report: "full", humanSupport: true, trials: 5 },
     target: { id: t.id, name: t.official_name, role: "target" },
     competitors: ents.filter((e) => e.role === "competitor").map((e) => ({ id: e.id, name: e.official_name, role: "competitor" as const })),
     runs, mentions: w.mentions.filter((m) => ids.has(m.runId)), claims: w.claims.filter((c) => ids.has(c.runId)), reviews: w.reviews,

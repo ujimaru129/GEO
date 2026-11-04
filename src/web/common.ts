@@ -24,6 +24,10 @@ export function reportClient(client: Client, industry: string, config: AppConfig
     plan: client.plan,
     planLabel: plan?.label.replace(/（.*）/, "") ?? client.plan,
     industry,
+    industryLabel: config.industries[industry]?.label ?? industry,
+    subject: config.industries[industry]?.subject ?? "この対象",
+    noun: config.industries[industry]?.noun ?? "対象",
+    counter: config.industries[industry]?.counter ?? "件",
     report: plan?.report ?? "summary",
     humanSupport: plan?.human_support ?? false,
     trials: plan?.trials ?? 0,
@@ -34,7 +38,6 @@ export function factLabelsFor(industry: string, factKeys: FactKeys): Record<stri
   return Object.fromEntries(Object.entries(factKeys[industry] ?? {}).map(([k, d]) => [k, d.label]));
 }
 
-export const INDUSTRY_LABEL: Record<string, string> = { idol: "アイドル", music: "音楽", game: "ゲーム" };
 
 export function dedupeSources<T extends { domain: string }>(list: T[]): T[] {
   const seen = new Set<string>();

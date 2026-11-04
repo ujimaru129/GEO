@@ -120,6 +120,7 @@ export class DemoRepo implements Repo {
       plan: c.plan,
       planLabel: plan.label.replace(/（.*）/, ""),
       industry: t.industry,
+      industryLabel: this.config.industries[t.industry]?.label ?? t.industry,
       targetName: t.official_name,
       nextRun: nextRunDate(c.plan, this.config.plans, DEMO_NOW),
       lastRun: runs.length ? jstDate(runs.map((r) => r.executedAt).sort().at(-1)!) : null,

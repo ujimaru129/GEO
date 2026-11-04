@@ -32,7 +32,7 @@ function select(n: number, o: { priority?: Prompt["priority"]; trials?: number; 
     return {
       prompt: {
         key: `q${k}`, questionId: `idol-disc-${String(k).padStart(3, "0")}`, industry: "idol", category: "discovery",
-        priority: o.priority ?? "normal", variant: 0, entityId: null, competitorId: null, clientIds: clients, text: `質問${k}`,
+        priority: o.priority ?? "normal", variant: 0, entityId: null, competitorId: null, clientIds: clients, context: {}, text: `質問${k}`,
       },
       clientIds: clients,
       trials: o.trials ?? 1,

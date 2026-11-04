@@ -119,6 +119,7 @@ export async function runMeasurement(opts: RunOptions): Promise<MeasurementSumma
       entityId: job.prompt.entityId,
       competitorId: job.prompt.competitorId,
       variant: job.prompt.variant,
+      context: job.prompt.context,
       promptText: job.prompt.text,
       engine: job.engine,
       trialNo: job.trialNo,

@@ -15,6 +15,7 @@ entities:
     official_name: サンプルアイドルA
     aliases: [サンプルA, Sample Idol A]
     competitors: [idol-c1, idol-c2, idol-c3]
+    contexts: { region: [渋谷, 新宿] } # 地域・時期など、この対象に関係する条件（質問の {region} などに入る）
   - { id: idol-c1, client_id: self, industry: idol, role: competitor, type: group, official_name: サンプルアイドルB }
   - { id: idol-c2, client_id: self, industry: idol, role: competitor, type: group, official_name: サンプルアイドルC }
   - { id: idol-c3, client_id: self, industry: idol, role: competitor, type: group, official_name: サンプルアイドルD }

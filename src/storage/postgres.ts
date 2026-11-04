@@ -25,10 +25,11 @@ export class PostgresStorage implements Storage {
                   on conflict (id) do update set name = excluded.name, plan = excluded.plan`;
       }
       for (const e of file.entities) {
-        await sql`insert into entities (id, client_id, industry, role, type, official_name, ambiguous_flag, updated_at)
-                  values (${e.id}, ${e.client_id}, ${e.industry}, ${e.role}, ${e.type}, ${e.official_name}, ${e.ambiguous}, now())
+        await sql`insert into entities (id, client_id, industry, role, type, official_name, ambiguous_flag, contexts, updated_at)
+                  values (${e.id}, ${e.client_id}, ${e.industry}, ${e.role}, ${e.type}, ${e.official_name}, ${e.ambiguous}, ${this.json(e.contexts)}, now())
                   on conflict (id) do update set client_id = excluded.client_id, industry = excluded.industry, role = excluded.role,
-                    type = excluded.type, official_name = excluded.official_name, ambiguous_flag = excluded.ambiguous_flag, updated_at = now()`;
+                    type = excluded.type, official_name = excluded.official_name, ambiguous_flag = excluded.ambiguous_flag,
+                    contexts = excluded.contexts, updated_at = now()`;
         await sql`delete from entity_aliases where entity_id = ${e.id}`;
         for (const alias of new Set([e.official_name, ...e.aliases])) {
           await sql`insert into entity_aliases (entity_id, alias, normalized) values (${e.id}, ${alias}, ${normalizeName(alias)})`;
@@ -41,11 +42,12 @@ export class PostgresStorage implements Storage {
         }
       }
       for (const q of questions) {
-        await sql`insert into questions (id, industry, category, template, paraphrases, variables, priority, fact_keys, synced_at)
+        await sql`insert into questions (id, industry, category, template, paraphrases, variables, contexts, period, priority, fact_keys, synced_at)
                   values (${q.id}, ${q.industry}, ${q.category}, ${q.template}, ${this.json(q.paraphrases)}, ${this.json(q.variables)},
-                          ${q.priority}, ${this.json(q.fact_keys)}, now())
+                          ${this.json(q.contexts)}, ${q.period ? this.json(q.period) : null}, ${q.priority}, ${this.json(q.fact_keys)}, now())
                   on conflict (id) do update set industry = excluded.industry, category = excluded.category, template = excluded.template,
-                    paraphrases = excluded.paraphrases, variables = excluded.variables, priority = excluded.priority,
+                    paraphrases = excluded.paraphrases, variables = excluded.variables, contexts = excluded.contexts, period = excluded.period,
+                    priority = excluded.priority,
                     fact_keys = excluded.fact_keys, synced_at = now()`;
       }
     });
@@ -63,11 +65,11 @@ export class PostgresStorage implements Storage {
   async recordRun(r: RunRecord, response: ResponseRecord | null) {
     // 生データは insert のみ（unique 制約により同じ試行の上書きはエラーになる）
     await this.sql.begin(async (sql) => {
-      await sql`insert into runs (id, measurement_id, prompt_key, question_id, entity_id, competitor_id, variant, prompt_text, engine, model,
+      await sql`insert into runs (id, measurement_id, prompt_key, question_id, entity_id, competitor_id, variant, context, prompt_text, engine, model,
                   trial_no, executed_at, status, attempts, latency_ms, input_tokens, output_tokens, reasoning_tokens, search_count,
                   cost_usd, cost_jpy, cost_allocation, error, config_hash)
                 values (${r.id}, ${r.measurementId}, ${r.promptKey}, ${r.questionId}, ${r.entityId}, ${r.competitorId}, ${r.variant},
-                  ${r.promptText}, ${r.engine}, ${r.model}, ${r.trialNo}, ${r.executedAt}, ${r.status}, ${r.attempts}, ${r.latencyMs},
+                  ${this.json(r.context)}, ${r.promptText}, ${r.engine}, ${r.model}, ${r.trialNo}, ${r.executedAt}, ${r.status}, ${r.attempts}, ${r.latencyMs},
                   ${r.inputTokens}, ${r.outputTokens}, ${r.reasoningTokens}, ${r.searchCount}, ${r.costUsd}, ${r.costJpy}, ${this.json(r.costAllocation)}, ${r.error},
                   ${r.configHash})`;
       if (response) {

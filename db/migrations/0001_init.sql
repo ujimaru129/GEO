@@ -13,9 +13,10 @@ create table entities (
   client_id text not null references clients(id),
   industry text not null,
   role text not null check (role in ('target', 'competitor')),
-  type text not null check (type in ('group', 'artist', 'member', 'title', 'company')),
+  type text not null check (type in ('group', 'artist', 'member', 'title', 'company', 'brand', 'product', 'store', 'service', 'event')),
   official_name text not null,
   ambiguous_flag boolean not null default false,
+  contexts jsonb not null default '{}', -- この対象に関係する条件（例: {"region": ["渋谷"]}）
   updated_at timestamptz not null default now()
 );
 
@@ -66,6 +67,8 @@ create table questions (
   template text not null,
   paraphrases jsonb not null default '[]',
   variables jsonb not null default '[]',
+  contexts jsonb not null default '{}',
+  period jsonb,
   priority text not null check (priority in ('high', 'normal')),
   fact_keys jsonb not null default '[]',
   synced_at timestamptz not null default now()
@@ -98,6 +101,7 @@ create table runs (
   entity_id text references entities(id),
   competitor_id text references entities(id),
   variant int not null default 0,
+  context jsonb not null default '{}', -- 条件の変数に入れた値（例: {"region": "渋谷"}）
   prompt_text text not null,
   engine text not null check (engine in ('openai', 'gemini', 'perplexity', 'claude')),
   model text, -- API が返した正式名

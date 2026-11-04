@@ -1,5 +1,5 @@
 import { type EngineName, ENGINE_NAMES, type Plan, type PlansConfig, weekdayIndex } from "./config.ts";
-import type { EntitiesFile, Prompt } from "./questions/index.ts";
+import { type EntitiesFile, type Prompt, inPeriod } from "./questions/index.ts";
 
 /** 日本時間の暦情報 */
 export function jstCalendar(now: Date) {
@@ -61,11 +61,14 @@ export function selectPrompts(
   file: EntitiesFile,
   plans: PlansConfig,
   mode: SelectionMode,
-  opts: { clients?: string[] } = {},
+  opts: { clients?: string[]; now?: Date } = {},
 ): SelectedPrompt[] {
   const planOf = new Map(file.clients.map((c) => [c.id, plans.plans[c.plan]]));
   const selected: SelectedPrompt[] = [];
+  // 期間を指定した質問（例: 大晦日のイベント）は、その期間の日だけ計測する
+  const today = jstCalendar(mode.kind === "scheduled" ? mode.now : (opts.now ?? new Date())).ymd;
   for (const prompt of prompts) {
+    if (!inPeriod(prompt.period, today)) continue;
     const clientIds = prompt.clientIds.filter((id) => {
       if (opts.clients && !opts.clients.includes(id)) return false;
       const plan = planOf.get(id)!;

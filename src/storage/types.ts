@@ -13,6 +13,8 @@ export type RunRecord = {
   entityId: string | null;
   competitorId: string | null;
   variant: number;
+  /** 条件の変数に入れた値（例: { region: "渋谷" }） */
+  context: Record<string, string>;
   promptText: string;
   engine: EngineName;
   model: string | null;

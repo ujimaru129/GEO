@@ -123,11 +123,22 @@ export type FactKeyDef = z.infer<typeof factKeySchema>;
 export const factKeysSchema = z.record(z.string(), z.record(z.string(), factKeySchema));
 export type FactKeys = z.infer<typeof factKeysSchema>;
 
+export const industrySchema = z.object({
+  label: z.string(),
+  subject: z.string(),
+  noun: z.string(),
+  counter: z.string(),
+});
+export type Industry = z.infer<typeof industrySchema>;
+export const industriesSchema = z.record(z.string(), industrySchema);
+export type Industries = z.infer<typeof industriesSchema>;
+
 export type AppConfig = {
   engines: EnginesConfig;
   measurement: MeasurementConfig;
   plans: PlansConfig;
   factKeys: FactKeys;
+  industries: Industries;
   /** 実行条件の再現用。全 run にこのハッシュを紐付け、本文は config_snapshots に保存する */
   snapshotHash: string;
   snapshot: unknown;
@@ -145,6 +156,10 @@ export function loadConfig(dir: string | URL = defaultConfigDir()): AppConfig {
   const measurement = measurementConfigSchema.parse(read("measurement.yaml"));
   const plans = plansConfigSchema.parse(read("plans.yaml"));
   const factKeys = factKeysSchema.parse(read("fact_keys.yaml"));
+  const industries = industriesSchema.parse(read("industries.yaml"));
+  for (const ind of Object.keys(factKeys)) {
+    if (!industries[ind]) throw new Error(`fact_keys.yaml の業態 ${ind} が industries.yaml にありません`);
+  }
   for (const [ind, keys] of Object.entries(factKeys)) {
     for (const [k, def] of Object.entries(keys)) {
       if (def.type === "enum" && !def.values?.length) throw new Error(`fact_keys: ${ind}.${k} は enum なので values が必要です`);
@@ -153,12 +168,13 @@ export function loadConfig(dir: string | URL = defaultConfigDir()): AppConfig {
   for (const [name, plan] of Object.entries(plans.plans)) {
     if (plan.fact_keys === "all") continue;
     for (const [ind, keys] of Object.entries(plan.fact_keys)) {
+      if (!industries[ind]) throw new Error(`plans: ${name} の業態 ${ind} が industries.yaml にありません`);
       for (const k of keys) if (!factKeys[ind]?.[k]) throw new Error(`plans: ${name} の fact_keys ${ind}.${k} が fact_keys.yaml にありません`);
     }
   }
   const snapshot = { engines, measurement, plans };
   const snapshotHash = createHash("sha256").update(stableStringify(snapshot)).digest("hex").slice(0, 16);
-  return { engines, measurement, plans, factKeys, snapshot, snapshotHash };
+  return { engines, measurement, plans, factKeys, industries, snapshot, snapshotHash };
 }
 
 export function stableStringify(value: unknown): string {

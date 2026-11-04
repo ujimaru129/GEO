@@ -27,6 +27,11 @@ export type ReportClient = {
   plan: string;
   planLabel: string;
   industry: string;
+  /** config/industries.yaml の業態の言い回し */
+  industryLabel: string;
+  subject: string;
+  noun: string;
+  counter: string;
   report: "summary" | "full";
   humanSupport: boolean;
   trials: number;

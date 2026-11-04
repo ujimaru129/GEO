@@ -1,0 +1,12 @@
+# 業態の定義。業態を追加するときは、ここ・config/fact_keys.yaml・questions/<業態>.yaml の3か所に足す（コード変更は不要）。
+#   label   : 画面に出す業態名
+#   subject : レポートの見出し「生成AIは、{subject}をどう語っているか。」
+#   noun    : 計測対象・競合の呼び方（「各{noun}が回答に挙がった割合」）
+#   counter : 競合の数え方（「競合3{counter}」）
+idol: { label: アイドル, subject: このグループ, noun: グループ, counter: 組 }
+music: { label: 音楽, subject: このアーティスト, noun: アーティスト, counter: 組 }
+game: { label: ゲーム, subject: この作品, noun: 作品, counter: 本 }
+
+# 例（使うときはコメントを外し、fact_keys と質問辞書も用意する）
+# beauty: { label: 美容, subject: このブランド, noun: ブランド, counter: 社 }
+# restaurant: { label: 飲食, subject: このお店, noun: お店, counter: 店 }

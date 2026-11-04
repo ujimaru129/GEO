@@ -20,10 +20,10 @@ const file: EntitiesFile = {
     { id: "mus", name: "音楽 Lite", plan: "lite" },
   ],
   entities: [
-    { id: "s1", client_id: "std", industry: "idol", role: "target", type: "group", official_name: "グループS", aliases: [], ambiguous: false, competitors: ["x1", "x2", "x3"] },
-    { id: "t1", client_id: "try", industry: "idol", role: "target", type: "group", official_name: "グループT", aliases: [], ambiguous: false, competitors: ["x1", "x2", "x3"] },
-    ...["x1", "x2", "x3"].map((id) => ({ id, client_id: "std", industry: "idol", role: "competitor" as const, type: "group" as const, official_name: id, aliases: [], ambiguous: false, competitors: [] })),
-    { id: "m1", client_id: "mus", industry: "music", role: "target", type: "artist", official_name: "歌手M", aliases: [], ambiguous: false, competitors: [] },
+    { id: "s1", client_id: "std", industry: "idol", role: "target", type: "group", official_name: "グループS", aliases: [], ambiguous: false, competitors: ["x1", "x2", "x3"], contexts: {} },
+    { id: "t1", client_id: "try", industry: "idol", role: "target", type: "group", official_name: "グループT", aliases: [], ambiguous: false, competitors: ["x1", "x2", "x3"], contexts: {} },
+    ...["x1", "x2", "x3"].map((id) => ({ id, client_id: "std", industry: "idol", role: "competitor" as const, type: "group" as const, official_name: id, aliases: [], ambiguous: false, competitors: [], contexts: {} })),
+    { id: "m1", client_id: "mus", industry: "music", role: "target", type: "artist", official_name: "歌手M", aliases: [], ambiguous: false, competitors: [], contexts: {} },
   ],
 };
 const prompts = expandPrompts(questions, file, config.plans);
@@ -84,4 +84,12 @@ test("共有の質問で、プランの試行回数を超えた回はその顧�
   const sel = selectPrompts(prompts, file, config.plans, { kind: "full" }).filter((s) => s.prompt.key === "idol-disc-001|v0|-|-");
   const jobs = buildPlan(sel).filter((j) => j.engine === "claude");
   assert.deepEqual(jobs.map((j) => j.clientIds.sort().join("+")), ["std+try", "std+try", "std+try", "std", "std"]);
+});
+
+test("期間を指定した質問は、その期間の計測日にだけ選ばれる（大晦日のイベント）", () => {
+  const dec = expandPrompts(questions, { ...file, entities: file.entities.map((e) => (e.id === "s1" ? { ...e, contexts: { region: ["渋谷"] } } : e)) }, config.plans);
+  const has = (now: Date) => selectPrompts(dec, file, config.plans, { kind: "full" }, { now }).some((s) => s.prompt.questionId === "idol-disc-005");
+  assert.ok(dec.some((p) => p.text === "大晦日の渋谷のアイドルイベントで一番注目されているのは？"));
+  assert.equal(has(jst("2026-12-28")), true);
+  assert.equal(has(jst("2026-11-04")), false);
 });
