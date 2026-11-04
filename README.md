@@ -12,7 +12,7 @@
 | 並列実行・リトライ（最大3回）・費用記録・月間予算上限 | `src/runner/`, `config/measurement.yaml` |
 | 顧客プラン（頻度・試行回数・質問セット・原価上限） | `config/plans.yaml`, `src/plans.ts` |
 | 正解データ（facts）の CSV 取り込み | `config/fact_keys.yaml`, `src/facts.ts`, `data/facts.template.csv` |
-| 画面のための仕組み（専用URL・社内メンバー・記入依頼と承認・確認履歴） | `db/migrations/0002_app.sql`, `src/app/` |
+| 画面のための仕組み（専用URL・社内メンバー・記入依頼と承認・確認履歴） | `db/migrations/0002_app.sql`, `src/workflow/` |
 
 ## 画面と仕組み（2026-11-03 確定）
 
@@ -20,16 +20,34 @@
 
 | 決定事項 | 実装 |
 | --- | --- |
-| 顧客は専用URL（＋月次PDF）でレポートを見る。ログインなし | `report_links`（トークンはハッシュのみ保存、顧客ごとに有効なURLは1つ）、`src/app/report-links.ts` |
+| 顧客は専用URL（＋月次PDF）でレポートを見る。ログインなし | `report_links`（トークンはハッシュのみ保存、顧客ごとに有効なURLは1つ）、`src/workflow/report-links.ts` |
 | 運営コンソールは社内チームの複数人が使う | `staff_members`（Supabase のメールログイン＋許可リスト）。確認・承認は誰がいつかを記録 |
 | 「誤り」判定と Lite の助言は社内が確認してから公開 | `claim_reviews`、`report_advice` |
 | Lite のレポートにも改善の助言を含める | `report_advice`（生成はフェーズD） |
-| 正解データは社内・顧客の両方から入力 | 社内: CSV / フォーム（`prepareStaffFact`）。顧客: 記入依頼 → 記入 → 社内承認（`fact_requests`, `fact_submissions`, `src/app/fact-requests.ts`） |
+| 正解データは社内・顧客の両方から入力 | 社内: CSV / フォーム（`prepareStaffFact`）。顧客: 記入依頼 → 記入 → 社内承認（`fact_requests`, `fact_submissions`, `src/workflow/fact-requests.ts`） |
 
 - 顧客の記入で出典URLがないものは「顧客の申告」（`source_type = client_provided`）として記録する
 - 未発表の情報は公表日（`public_from`）を入れ、それより前の AI の回答の判定には使わない
 - 承認時に「古い値を終了して承認」を選ぶと、現在の値の valid_to を自動で閉じる（卒業・移籍）
 - 顧客も分からない項目は `unknown` で閉じ、判定は「照合不能」のまま
+
+## 画面（Next.js）
+
+| 画面 | URL | 使う人 |
+| --- | --- | --- |
+| 顧客レポート（サマリー・誤った情報・競合との比較・推移・引用元・改善の助言・記入のお願い） | `/r/<専用URLのトークン>` | 顧客（ログインなし） |
+| 運営コンソール（顧客一覧・判定の確認・正解データ・計測とコスト） | `/console` | 社内メンバー（メールでログイン） |
+
+```bash
+npm run dev            # http://localhost:3000 （DATABASE_URL がなければデモデータで起動）
+npm run build && npm start
+npm run seed:demo      # デモデータ（架空の3社）を DB に入れる。--force で入れ直し
+```
+
+- `DATABASE_URL` がない場合はデモデータ（架空の3社）で動く。社内画面もログインなしで開けるので、本番ビルドでは `ALLOW_DEMO=1` のときだけ許可
+- 社内メンバーの登録: `insert into staff_members (email, name, role) values ('…', '山本', 'admin');`。登録されたアドレスにだけログインリンクを送る
+- 顧客の専用URLは運営コンソールの顧客ページで発行する（発行直後だけ表示。DB にはハッシュのみ）
+- デザイン: 紙の調査報告書の体裁。罫線で区切り、カードを並べない。色は藍1色＋判定の3色。見出しと主要な数字は明朝（しっぽり明朝）、本文は BIZ UDPゴシック、数値は IBM Plex Mono
 
 ## 顧客プラン
 
@@ -111,5 +129,6 @@ npm run estimate  # 月間予算のシナリオ比較
 - `data/entities.yaml` は仮データ。テスト対象5組と競合が決まったら差し替える
 - Gemini のレスポンス形式は公式ドキュメントを取得できていないため、実キーでの疎通時に確認する
 - 定期実行（Vercel Cron + QStash）は未実装。現状は `npm run measure` を毎日1回実行する想定
-- 画面（顧客レポート・顧客入力フォーム・運営コンソール）は未実装。仕組み（DB・ロジック）のみ実装済み
+- 解析（フェーズB）が未実装のため、本番 DB ではレポートに出す言及・判定・引用元がまだ作られない（画面はデモデータで確認）
+- 改善の助言の自動生成（フェーズD）は未実装。助言は report_advice に入れたものを表示する
 - `scripts/estimate-budget.ts` の単価は `config/pricing.json`（OpenAI flex の割引は未反映＝保守的）

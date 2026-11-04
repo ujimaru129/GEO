@@ -9,8 +9,8 @@ import {
   prepareStaffFact,
   rejectSubmission,
   submitByClient,
-} from "../src/app/fact-requests.ts";
-import { generateReportToken, hashReportToken, isWellFormedToken, tokenMatches } from "../src/app/report-links.ts";
+} from "../src/workflow/fact-requests.ts";
+import { generateReportToken, hashReportToken, isWellFormedToken, tokenMatches } from "../src/workflow/report-links.ts";
 import { loadConfig } from "../src/config.ts";
 import { type FactContext, type FactRecord, currentFacts, factAt } from "../src/facts.ts";
 import { loadEntities } from "../src/questions/index.ts";

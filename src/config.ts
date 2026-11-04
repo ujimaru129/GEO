@@ -1,4 +1,6 @@
 import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { parse } from "yaml";
 import { z } from "zod";
@@ -131,8 +133,14 @@ export type AppConfig = {
   snapshot: unknown;
 };
 
-export function loadConfig(dir = new URL("../config/", import.meta.url)): AppConfig {
-  const read = (name: string) => parse(readFileSync(new URL(name, dir), "utf8"));
+/** 設定ディレクトリ。既定はリポジトリ直下の config/（Next.js からは process.cwd() 基準） */
+export function defaultConfigDir(): string {
+  return process.env.GEO_CONFIG_DIR ?? join(dirname(fileURLToPath(import.meta.url)), "..", "config");
+}
+
+export function loadConfig(dir: string | URL = defaultConfigDir()): AppConfig {
+  const base = typeof dir === "string" ? dir : fileURLToPath(dir);
+  const read = (name: string) => parse(readFileSync(join(base, name), "utf8"));
   const engines = enginesConfigSchema.parse(read("engines.yaml"));
   const measurement = measurementConfigSchema.parse(read("measurement.yaml"));
   const plans = plansConfigSchema.parse(read("plans.yaml"));

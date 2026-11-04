@@ -5,3 +5,6 @@ node_modules/
 .next/
 data/local/
 data/local-mock/
+.next/
+next-env.d.ts
+*.tsbuildinfo
