@@ -49,6 +49,8 @@ export type RRun = {
   status: "ok" | "failed" | "skipped_budget";
   entityId: string | null;
   costJpy: number;
+  /** 条件の変数に入れた値（例: { region: "渋谷" }）。条件なしは {} */
+  context: Record<string, string>;
 };
 
 export type RMention = { runId: string; entityId: string; rank: number | null };

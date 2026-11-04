@@ -24,6 +24,7 @@ export default async function ReportLayout({ children, params }: { children: Rea
     { href: base, label: "概要", exact: true },
     { href: `${base}/misinfo`, label: "誤った情報", count: v.misinfoOngoing },
     { href: `${base}/competitors`, label: "競合との比較" },
+    ...(v.contexts.groups.length ? [{ href: `${base}/contexts`, label: "条件別" }] : []),
     ...(full ? [{ href: `${base}/trend`, label: "推移" }, { href: `${base}/sources`, label: "引用元" }] : []),
     { href: `${base}/advice`, label: "改善の助言" },
     ...(data.rows.requests.length ? [{ href: `${base}/requests`, label: "記入のお願い", count: v.openRequests }] : []),

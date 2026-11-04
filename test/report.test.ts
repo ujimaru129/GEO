@@ -79,3 +79,24 @@ test("レポート: 確認待ちの「誤り」は正確率の分母からも外
   const reviewed = { ...rows, reviews: [...rows.reviews, ...pending.map((c) => ({ claimId: c.id, decision: "incorrect" as const, reviewer: "a", reviewerName: "A", reviewedAt: "2026-11-03T00:00:00Z", note: null }))] };
   assert.equal(buildReport(reviewed).accuracy.n, before + pending.length);
 });
+
+test("条件別: 条件付きの質問は全体の数字に混ぜず、条件の組み合わせ・条件ごとに直近の観測週で集計する", () => {
+  const rows = rowsFor("demo-idol");
+  const v = buildReport(rows);
+  const noCtx = buildReport({ ...rows, runs: rows.runs.filter((r) => Object.keys(r.context).length === 0) });
+  assert.equal(v.share.value, noCtx.share.value); // 全体の数字は変わらない
+  assert.equal(noCtx.contexts.groups.length, 0);
+  const keys = v.contexts.groups.map((g) => g.key);
+  assert.deepEqual(new Set(keys), new Set(["region=渋谷", "region=新宿", "region=大阪", "occasion=ハロウィン,region=渋谷"]));
+  const halloween = v.contexts.groups.find((g) => g.key.startsWith("occasion"))!;
+  assert.equal(halloween.weekStart, "2026-10-26"); // その時期だけ計測した条件は、最後に観測した週
+  assert.equal(halloween.appearance.change, null); // 前回の観測がない
+  const shibuya = v.contexts.groups.find((g) => g.key === "region=渋谷")!;
+  assert.equal(shibuya.weekStart, "2026-11-02");
+  assert.equal(shibuya.appearance.n, 20);
+  const region = v.contexts.dimensions.find((d) => d.variable === "region")!;
+  assert.equal(region.label, "地域");
+  assert.equal(region.values[0].value, "渋谷");
+  assert.equal(region.values.at(-1)!.value, "大阪");
+  assert.ok(region.values[0].appearance.value > region.values.at(-1)!.appearance.value);
+});

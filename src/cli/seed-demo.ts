@@ -70,12 +70,14 @@ try {
     const fx = config.measurement.budget.fx_jpy_per_usd;
     const trial = new Map<string, number>();
     for (const r of w.runs) {
-      const key = `${r.measurementId}|${r.questionId}|${r.entityId}|${r.engine}`;
+      const ctx = Object.keys(r.context).sort().map((k) => `${k}=${r.context[k]}`).join(",");
+      const promptKey = `${r.questionId}|v0|${r.entityId ?? "-"}|-${ctx ? `|${ctx}` : ""}`;
+      const key = `${r.measurementId}|${promptKey}|${r.engine}`;
       const trialNo = (trial.get(key) ?? 0) + 1;
       trial.set(key, trialNo);
-      await tx`insert into runs (id, measurement_id, prompt_key, question_id, entity_id, variant, prompt_text, engine, model, trial_no, executed_at, status,
+      await tx`insert into runs (id, measurement_id, prompt_key, question_id, entity_id, variant, context, prompt_text, engine, model, trial_no, executed_at, status,
           attempts, cost_usd, cost_jpy, cost_allocation, config_hash)
-        values (${r.id}, ${r.measurementId}, ${`${r.questionId}|v0|${r.entityId ?? "-"}|-`}, ${r.questionId}, ${r.entityId}, 0, ${"（デモ）"}, ${r.engine},
+        values (${r.id}, ${r.measurementId}, ${promptKey}, ${r.questionId}, ${r.entityId}, 0, ${j(r.context)}, ${"（デモ）"}, ${r.engine},
           ${`demo-${r.engine}`}, ${trialNo}, ${r.executedAt}, ${r.status}, 1, ${r.costJpy / fx}, ${r.costJpy},
           ${j(Object.fromEntries(r.clientIds.map((c) => [c, 1 / r.clientIds.length])))}, ${config.snapshotHash})`;
     }

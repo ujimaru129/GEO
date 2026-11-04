@@ -231,6 +231,8 @@ export function buildDemoWorld(): DemoWorld {
   };
   const r = rng(20261103);
   for (const p of [IDOL, GAME, MUSIC]) generate(world, p, r);
+  // 条件付きの質問（既存の数字が変わらないよう、別の乱数で後から足す）
+  generateContexts(world, IDOL, rng(20261231));
   addFacts(world);
   addWorkflow(world);
   return world;
@@ -256,7 +258,7 @@ function generate(world: DemoWorld, p: Profile, r: () => number) {
     const at = (k: number) => new Date(base + k * 7000).toISOString();
     const runOf = (questionId: string, category: RRun["category"], engine: EngineName, entityId: string | null) => {
       const id = `run-${++seq}`;
-      const run = { id, measurementId, questionId, category, engine, executedAt: at(seq % 3000), status: "ok" as const, entityId, costJpy: COST[engine] * (0.8 + r() * 0.4), clientIds: [p.clientId] };
+      const run = { id, measurementId, questionId, category, engine, executedAt: at(seq % 3000), status: "ok" as const, entityId, costJpy: COST[engine] * (0.8 + r() * 0.4), clientIds: [p.clientId], context: {} };
       world.runs.push(run);
       const nCit = 2 + Math.floor(r() * 3);
       const used = new Set<string>();
@@ -372,5 +374,42 @@ function addWorkflow(world: DemoWorld) {
     id: "sub-1", requestId: "req-2", clientId: "demo-game", entityId: "game-a", key: "current_events",
     input: { value: "秋の収穫祭イベント|ハロウィン限定ガチャ", validFrom: "2026-10-28", sourceUrl: "https://game.sample-quest.example/news/autumn", sourceType: "public", checkedAt: "2026-11-01", note: "11/10 まで" },
     via: "client_form", submittedBy: "client:demo-game", submittedAt: "2026-11-01T09:00:00.000Z", status: "pending", reviewedBy: null, reviewedAt: null, reviewNote: null,
+  });
+}
+
+/**
+ * 条件付きのおすすめ質問（アイドルのみ）
+ * - 毎週: 「{region}で今週末おすすめのアイドルライブは？」渋谷・新宿・大阪
+ * - ハロウィン週だけ: 「{occasion}の{region}のアイドルイベントで注目は？」ハロウィン × 渋谷
+ */
+function generateContexts(world: DemoWorld, p: Profile, r: () => number) {
+  let seq = world.runs.length;
+  const regions: { region: string; me: number; trend: number; comp: Record<string, number> }[] = [
+    { region: "渋谷", me: 0.48, trend: 0.02, comp: { "idol-b": 0.42, "idol-c": 0.3, "idol-d": 0.12 } },
+    { region: "新宿", me: 0.3, trend: 0.01, comp: { "idol-b": 0.5, "idol-c": 0.22, "idol-d": 0.15 } },
+    { region: "大阪", me: 0.05, trend: 0, comp: { "idol-b": 0.62, "idol-c": 0.12, "idol-d": 0.35 } },
+  ];
+  const emit = (week: string, questionId: string, context: Record<string, string>, me: number, comp: Record<string, number>, trend: number) => {
+    const measurementId = `${p.clientId}-${week}`;
+    const base = Date.parse(`${week}T03:00:00Z`);
+    for (let t = 0; t < p.trials; t++) {
+      for (const engine of ENGINES) {
+        const id = `run-${++seq}`;
+        world.runs.push({
+          id, measurementId, questionId, category: "discovery", engine, executedAt: new Date(base + seq * 5000).toISOString(), status: "ok",
+          entityId: null, costJpy: COST[engine] * (0.8 + r() * 0.4), clientIds: [p.clientId], context,
+        });
+        const listed: string[] = [];
+        if (r() < Math.max(0, me + trend)) listed.push(p.target);
+        for (const [cid, cp] of Object.entries(comp)) if (r() < cp) listed.push(cid);
+        listed.sort(() => r() - 0.5).forEach((eid, i) => world.mentions.push({ runId: id, entityId: eid, rank: i + 1 }));
+        const d = pickDomain(p, r);
+        world.citations.push({ runId: id, url: `https://${d.domain}/event/${seq % 89}`, domain: d.domain, sourceType: d.type });
+      }
+    }
+  };
+  p.weeks.forEach((week, wi) => {
+    for (const g of regions) emit(week, "idol-disc-006", { region: g.region }, g.me, g.comp, g.trend * wi);
+    if (week === "2026-10-26") emit(week, "idol-disc-007", { occasion: "ハロウィン", region: "渋谷" }, 0.55, { "idol-b": 0.35, "idol-c": 0.4, "idol-d": 0.1 }, 0);
   });
 }

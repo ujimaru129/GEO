@@ -108,7 +108,7 @@ export class PgRepo implements Repo {
     const c = file.clients.find((x) => x.id === clientId)!;
     const t = file.entities.find((e) => e.client_id === clientId && e.role === "target")!;
     // この顧客に按分された実行（共有の発見系の質問を含む）
-    const runs = await this.sql`select r.id, r.measurement_id, r.question_id, q.category, r.engine, r.executed_at, r.status, r.entity_id, r.cost_jpy
+    const runs = await this.sql`select r.id, r.measurement_id, r.question_id, q.category, r.engine, r.executed_at, r.status, r.entity_id, r.cost_jpy, r.context
       from runs r join questions q on q.id = r.question_id
       where r.cost_allocation ? ${clientId} order by r.executed_at`;
     const runIds = runs.map((r) => r.id as string);
@@ -134,6 +134,7 @@ export class PgRepo implements Repo {
       runs: runs.map((r) => ({
         id: r.id, measurementId: r.measurement_id, questionId: r.question_id, category: r.category, engine: r.engine as EngineName,
         executedAt: iso(r.executed_at), status: r.status, entityId: r.entity_id, costJpy: Number(r.cost_jpy),
+        context: r.context ?? {},
       })),
       mentions: mentions.map((m) => ({ runId: m.run_id, entityId: m.entity_id, rank: m.rank })),
       claims: claims.map((x) => ({

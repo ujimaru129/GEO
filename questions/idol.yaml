@@ -28,6 +28,10 @@ questions:
     variables: [occasion, region]
     contexts: { occasion: [大晦日] }
     period: { from: "12-20", to: "12-31" }
+  - id: idol-disc-006
+    category: discovery
+    template: "{region}で今週末おすすめのアイドルライブは？"
+    variables: [region]
 
   - id: idol-ent-001
     plans: [lite]
