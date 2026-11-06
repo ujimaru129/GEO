@@ -15,7 +15,7 @@ export default async function Competitors({ params }: { params: Promise<{ token:
   const overlap = leader && !leader.isTarget && me.rate.high >= leader.rate.low;
   return (
     <>
-      <section className="r-section" aria-labelledby="s-comp">
+      <section className="r-section" data-accent="violet" aria-labelledby="s-comp">
         <span className="o-tag">COMPETITIVE POSITION</span>
         <header>
           <h2 id="s-comp">おすすめに挙がる割合</h2>
@@ -32,7 +32,7 @@ export default async function Competitors({ params }: { params: Promise<{ token:
           </p>
         )}
       </section>
-      <section className="r-section" aria-labelledby="s-share">
+      <section className="r-section" data-accent="violet" aria-labelledby="s-share">
         <span className="o-tag">SHARE OF AI</span>
         <header>
           <h2 id="s-share">シェア・オブ・AI</h2>

@@ -35,7 +35,7 @@ export default async function Requests({ params, searchParams }: { params: Promi
   const lastReject = (requestId: string) =>
     data.rows.submissions.filter((s) => s.requestId === requestId && s.status === "rejected").sort((a, b) => (b.reviewedAt ?? "").localeCompare(a.reviewedAt ?? ""))[0];
   return (
-    <section className="r-section" aria-labelledby="s-req">
+    <section className="r-section" data-accent="orange" aria-labelledby="s-req">
       <span className="o-tag">INPUT REQUEST</span>
       <header>
         <h2 id="s-req">記入のお願い</h2>

@@ -11,7 +11,7 @@ export default async function Advice({ params }: { params: Promise<{ token: stri
   const v = data.view;
   const a = v.advice;
   return (
-    <section className="r-section" aria-labelledby="s-adv">
+    <section className="r-section" data-accent="yellow" aria-labelledby="s-adv">
       <span className="o-tag">ACTION PLAN</span>
       <header>
         <h2 id="s-adv">結果を受けて、やるべきこと</h2>

@@ -16,7 +16,7 @@ export default async function Runs() {
           今月 {yen(o.monthCostJpy)} / 全体の上限 {yen(o.monthCapJpy)}（{Math.round(ratio * 100)}%）
         </span>
       </div>
-      <section className="c-section">
+      <section className="c-section" data-accent="green">
         <header>
           <h2>今月のAPI費用（エンジン別）</h2>
         </header>
@@ -49,7 +49,7 @@ export default async function Runs() {
           </table>
         </div>
       </section>
-      <section className="c-section">
+      <section className="c-section" data-accent="green">
         <header>
           <h2>計測の履歴</h2>
           <span className="small muted">欠損率の目標は2%以下</span>

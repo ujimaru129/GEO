@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { NavLink } from "../../../components/client-ui.tsx";
-import { OrbitGraphic } from "../../../components/orbit.tsx";
+import { ENGINE_COLOR, Icon, LedMeter } from "../../../components/rack.tsx";
 import { isDemo } from "../../../src/web/index.ts";
 import { reportForToken } from "../../../src/web/report-data.ts";
 
@@ -20,69 +20,67 @@ export default async function ReportLayout({ children, params }: { children: Rea
   const full = v.client.report === "full";
   const once = v.client.plan === "lite";
   const weekEnd = v.period ? new Date(Date.parse(`${v.period.weekStart}T00:00:00Z`) + 6 * 86400_000).toISOString().slice(0, 10) : null;
-  const tabs: { href: string; label: string; count?: number; exact?: boolean }[] = [
-    { href: base, label: "概要", exact: true },
-    { href: `${base}/misinfo`, label: "誤った情報", count: v.misinfoOngoing },
-    { href: `${base}/competitors`, label: "競合との比較" },
-    ...(v.contexts.groups.length ? [{ href: `${base}/contexts`, label: "条件別" }] : []),
-    ...(full ? [{ href: `${base}/trend`, label: "推移" }, { href: `${base}/sources`, label: "引用元" }] : []),
-    { href: `${base}/advice`, label: "改善の助言" },
-    ...(data.rows.requests.length ? [{ href: `${base}/requests`, label: "記入のお願い", count: v.openRequests }] : []),
+  const tabs: { href: string; label: string; icon: string; count?: number; exact?: boolean }[] = [
+    { href: base, label: "概要", icon: "overview", exact: true },
+    { href: `${base}/misinfo`, label: "誤情報", icon: "misinfo", count: v.misinfoOngoing },
+    { href: `${base}/competitors`, label: "競合", icon: "competitors" },
+    ...(v.contexts.groups.length ? [{ href: `${base}/contexts`, label: "条件別", icon: "contexts" }] : []),
+    ...(full ? [{ href: `${base}/trend`, label: "推移", icon: "trend" }, { href: `${base}/sources`, label: "引用元", icon: "sources" }] : []),
+    { href: `${base}/advice`, label: "助言", icon: "advice" },
+    ...(data.rows.requests.length ? [{ href: `${base}/requests`, label: "記入", icon: "requests", count: v.openRequests }] : []),
   ];
   return (
     <div className="orbit">
       {isDemo() && <div className="demo-band">DEMO DATA ― 架空のデータです。実在の団体・作品とは関係ありません。</div>}
-      <header className="o-top">
+      <header className="rk-bar">
         <div className="o-wrap">
-          <div className="o-logo">
-            <b>
-              <i>◉</i>ORBIT
-            </b>
-            <span className="o-tag">AI OBSERVATORY / JP</span>
+          <div className="rk-logo">
+            <b>ORBIT</b>
+            <span className="rk-badge" title={`${v.client.planLabel} プラン`}>
+              {v.client.planLabel.slice(0, 1)}
+            </span>
           </div>
-          <div className="o-client">
+          <div className="rk-preset rk-screen">
+            <span className="chip">{once ? "SINGLE" : v.period ? `WK${v.period.weekNo}` : "—"}</span>
+            <b>{v.target.name}</b>
+            {v.period && weekEnd && (
+              <span className="o-tag">
+                {once ? `${dot(v.period.lastRunDate)} 観測` : `${dot(v.period.weekStart)}–${dot(weekEnd).slice(5)}`} · 4エンジン×{v.period.trials} · {v.period.runs}回答
+              </span>
+            )}
+          </div>
+          <nav className="rk-tabs rk-screen" aria-label="レポートの項目">
+            {tabs.map((t) => (
+              <NavLink key={t.href} href={t.href} exact={t.exact}>
+                <Icon name={t.icon} />
+                <span className="t">{t.label}</span>
+                {!!t.count && <span className="count">{t.count}</span>}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="rk-client">
             <span>{v.client.name} 様</span>
-            <span className="o-tag">PLAN / {v.client.planLabel}</span>
+            <span className="o-tag">{v.client.industryLabel}</span>
           </div>
         </div>
       </header>
 
-      <section className="o-hero">
-        <div className="o-wrap">
-          <div>
-            <span className="o-tag">
-              <em>●</em>　観測レポート　/　{once ? "SINGLE OBSERVATION" : v.period ? `WEEK ${v.period.weekNo}` : "準備中"}
-            </span>
-            <h1>{v.target.name}</h1>
-            <p>生成AIは、{v.client.subject}をどう語っているか。</p>
-            {v.period && weekEnd && (
-              <div className="o-meta o-tag">
-                <span>{once ? `${dot(v.period.lastRunDate)} 観測` : `${dot(v.period.weekStart)} — ${dot(weekEnd).slice(5)}`}</span>
-                <span>4エンジン × {v.period.trials}回</span>
-                <span>{v.period.runs}回答</span>
+      {v.hasData && (
+        <div className="rk-strips" aria-label="AIごとの、おすすめに出た割合">
+          <div className="o-wrap">
+            {v.byEngine.map((e, i) => (
+              <div key={e.engine} className="rk-strip" style={{ color: ENGINE_COLOR[e.engine] }}>
+                <span className="name">
+                  <i>{i + 1}•</i>
+                  {e.label}
+                </span>
+                <LedMeter value={e.appearance.n ? e.appearance.value : 0} color={ENGINE_COLOR[e.engine]} />
+                <span className="val">{e.appearance.n ? `${Math.round(e.appearance.value * 100)}%` : "—"}</span>
               </div>
-            )}
+            ))}
           </div>
-          {v.hasData && (
-            <div className="o-orbit-box">
-              <OrbitGraphic engines={v.byEngine.map((e) => ({ engine: e.engine, rate: e.appearance.n ? e.appearance.value : null }))} />
-              <p className="o-legend">軌道 = AI ／ 位置 = おすすめに出た割合（真上が0%、1周で100%）</p>
-            </div>
-          )}
         </div>
-      </section>
-
-      <nav className="o-nav" aria-label="レポートの項目">
-        <div className="o-wrap">
-          {tabs.map((t, i) => (
-            <NavLink key={t.href} href={t.href} exact={t.exact}>
-              <span className="n">{String(i + 1).padStart(2, "0")}</span>
-              {t.label}
-              {!!t.count && <span className="count">{t.count}</span>}
-            </NavLink>
-          ))}
-        </div>
-      </nav>
+      )}
 
       <main className="o-wrap o-body">{children}</main>
     </div>

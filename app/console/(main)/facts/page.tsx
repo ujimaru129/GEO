@@ -37,7 +37,7 @@ export default async function Facts({ searchParams }: { searchParams: Promise<{ 
         <p className="muted">顧客が登録されていません。</p>
       ) : (
         <>
-          <section className="c-section">
+          <section className="c-section" data-accent="yellow">
             <header>
               <h2>顧客からの記入（確認待ち {pending.length}件）</h2>
             </header>
@@ -78,7 +78,7 @@ export default async function Facts({ searchParams }: { searchParams: Promise<{ 
             )}
           </section>
 
-          <section className="c-section">
+          <section className="c-section" data-accent="yellow">
             <header>
               <h2>登録済みの正解データ</h2>
               <span className="small muted">取り消し線は過去の値（「古い」判定に使います）</span>
@@ -124,7 +124,7 @@ export default async function Facts({ searchParams }: { searchParams: Promise<{ 
           </section>
 
           <div className="two-col" style={{ gap: 36 }}>
-            <section className="c-section">
+            <section className="c-section" data-accent="yellow">
               <header>
                 <h2>1件登録する（社内）</h2>
               </header>
@@ -174,7 +174,7 @@ export default async function Facts({ searchParams }: { searchParams: Promise<{ 
               </ActionForm>
             </section>
 
-            <section className="c-section">
+            <section className="c-section" data-accent="yellow">
               <header>
                 <h2>顧客に記入を依頼する</h2>
               </header>

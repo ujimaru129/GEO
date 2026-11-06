@@ -12,7 +12,7 @@ export default async function Sources({ params }: { params: Promise<{ token: str
   if (v.client.report !== "full") notFound();
   const top = v.sources[0]?.share ?? 1;
   return (
-    <section className="r-section" aria-labelledby="s-src">
+    <section className="r-section" data-accent="green" aria-labelledby="s-src">
       <span className="o-tag">CITATION SOURCES</span>
       <header>
         <h2 id="s-src">AIが参照したサイト</h2>

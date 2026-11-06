@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useActionState, useRef, useState } from "react";
 import type { ActionResult } from "../src/web/repo.ts";
+import { Knob } from "./rack.tsx";
 
 export function CopyButton({ text, label = "文面をコピー" }: { text: string; label?: string }) {
   const [done, setDone] = useState(false);
@@ -104,39 +105,42 @@ export type MetricCardData = {
   unit: string;
   sub: string;
   delta: { cls: string; text: string } | null;
-  /** 0〜1。バーの長さ */
+  /** 0〜1。つまみの位置 */
   track: number;
-  /** 95%区間（0〜1）。バー上に目盛りとして描く */
+  /** 95%区間（0〜1）。つまみの薄い帯 */
   ci?: [number, number];
-  warm?: boolean;
+  /** つまみ・表示の色（CSS の色） */
+  color?: string;
   detail: string;
 };
 
-/** 押すと説明が開く指標カード（参考: ORBIT） */
+/** つまみの指標。押すと説明が開く */
 export function MetricCards({ cards }: { cards: MetricCardData[] }) {
   const [open, setOpen] = useState<MetricCardData | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   return (
     <>
-      <div className="o-cards">
-        {cards.map((c, i) => (
-          <button key={c.id} type="button" className="o-card" onClick={() => {
+      <div className="rk-knobs">
+        {cards.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            className="rk-knob-cell"
+            style={{ ["--kc" as string]: c.color ?? "var(--cyan)" }}
+            onClick={() => {
               setOpen(c);
               dialog.current?.showModal();
             }}
             aria-haspopup="dialog"
           >
-            <span className="o-tag">
-              0{i + 1} / {c.id}　↗
+            <span className="lbl">
+              {c.title}
+              <em>{c.id}</em>
             </span>
-            <h3>{c.title}</h3>
-            <strong className={`o-num${c.warm ? " warm" : ""}`}>
+            <Knob value={c.track} low={c.ci?.[0]} high={c.ci?.[1]} color={c.color ?? "var(--cyan)"} label={c.title} />
+            <span className="rk-lcd">
               {c.value}
-              <span>{c.unit}</span>
-            </strong>
-            <span className={`o-track${c.warm ? " warm" : ""}`} aria-hidden>
-              <i style={{ width: `${Math.min(100, c.track * 100)}%` }} />
-              {c.ci && <b style={{ left: `${c.ci[0] * 100}%`, width: `${(c.ci[1] - c.ci[0]) * 100}%` }} />}
+              <small>{c.unit}</small>
             </span>
             <span className="o-sub">{c.sub}</span>
             {c.delta && <span className={`o-delta ${c.delta.cls}`}>{c.delta.text}</span>}
@@ -146,7 +150,7 @@ export function MetricCards({ cards }: { cards: MetricCardData[] }) {
       <dialog className="o-dialog" ref={dialog} onClose={() => setOpen(null)} aria-label={open?.title}>
         {open && (
           <>
-            <span className="o-tag">METRIC DETAIL</span>
+            <span className="o-tag">METRIC DETAIL / {open.id}</span>
             <h2>
               {open.title}　{open.value}
               {open.unit}

@@ -24,7 +24,7 @@ export default async function Reviews({ searchParams }: { searchParams: Promise<
           {DONE_MESSAGES[done]}
         </p>
       )}
-      <section className="c-section">
+      <section className="c-section" data-accent="pink">
         <header>
           <h2>「誤り」判定</h2>
           <span className="small muted">確認したものだけが顧客のレポートに載ります。「古い」「正しい」は自動で公開されます。</span>
@@ -72,7 +72,7 @@ export default async function Reviews({ searchParams }: { searchParams: Promise<
         )}
       </section>
 
-      <section className="c-section">
+      <section className="c-section" data-accent="pink">
         <header>
           <h2>改善の助言（下書き）</h2>
           <span className="small muted">承認すると顧客のレポートの「改善の助言」に表示されます。</span>

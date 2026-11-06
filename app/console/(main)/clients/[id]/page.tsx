@@ -15,7 +15,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
         <h1>{c.name}</h1>
         <span className="meta">{c.planLabel} ・ {c.industryLabel}</span>
       </div>
-      <section className="c-section">
+      <section className="c-section" data-accent="violet">
         <dl className="kv">
           <dt>計測対象</dt>
           <dd>{c.targetName}</dd>
@@ -36,7 +36,7 @@ export default async function ClientDetail({ params }: { params: Promise<{ id: s
         </div>
       </section>
 
-      <section className="c-section">
+      <section className="c-section" data-accent="violet">
         <header>
           <h2>顧客の専用URL</h2>
           <span className="small muted">{c.activeLinkCreatedAt ? `発行 ${jpDateTime(c.activeLinkCreatedAt)}` : "未発行"}</span>

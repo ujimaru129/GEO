@@ -47,7 +47,7 @@ npm run seed:demo      # デモデータ（架空の3社）を DB に入れる�
 - `DATABASE_URL` がない場合はデモデータ（架空の3社）で動く。社内画面もログインなしで開けるので、本番ビルドでは `ALLOW_DEMO=1` のときだけ許可
 - 社内メンバーの登録: `insert into staff_members (email, name, role) values ('…', '山本', 'admin');`。登録されたアドレスにだけログインリンクを送る
 - 顧客の専用URLは運営コンソールの顧客ページで発行する（発行直後だけ表示。DB にはハッシュのみ）
-- 顧客レポートのデザイン（ORBIT ／ AI観測レポート）: 観測所の計器盤。暗い盤面にライム1色、課題は暖色。等幅の英字ラベル、押すと説明が開く指標カード、AIごとの出現率を表す軌道図。書体は IBM Plex Sans JP / IBM Plex Mono（`app/orbit.css`）
+- デザイン（ORBIT）: DTM のプラグイン風。青みのあるダークグレーの盤面に、浮き上がる部品（上端ハイライト＋影）と沈んだ表示窓。AI ごとのチャンネル色（ChatGPT 緑・Gemini 青・Perplexity 紫・Claude 橙）と部品ごとのネオン色。指標は回転つまみ（弧＝値、薄い帯＝95%区間）、上部はアイコンのツールバーと AI のチャンネル帯。部品は `components/rack.tsx`、スタイルは `app/orbit.css`
 - 運営コンソールも同じ ORBIT の盤面（`app/orbit.css` の `.orbit-console`）。`app/globals.css` は共通部品
 
 ## 業態の追加（エンタメ以外にも使う）

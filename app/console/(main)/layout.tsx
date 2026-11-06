@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { NavLink } from "../../../components/client-ui.tsx";
+import { Icon } from "../../../components/rack.tsx";
 import { currentStaff } from "../../../src/web/auth.ts";
 import { getRepo, isDemo } from "../../../src/web/index.ts";
 import { signOutAction } from "../actions.ts";
@@ -21,20 +22,26 @@ export default async function ConsoleLayout({ children }: { children: React.Reac
       <div className="console">
         <aside className="c-side">
           <div className="c-brand">
-            <b>
-              <i>◉</i>ORBIT
-            </b>
-            <span className="o-tag">CONSOLE / 運営</span>
+            <b>ORBIT</b>
+            <span className="rk-badge">C</span>
           </div>
           <nav className="c-nav" aria-label="運営メニュー">
-            <NavLink href="/console" exact>顧客一覧</NavLink>
+            <NavLink href="/console" exact>
+              <Icon name="clients" />
+              顧客一覧
+            </NavLink>
             <NavLink href="/console/reviews">
+              <Icon name="reviews" />
               判定の確認{reviews.length + drafts.length > 0 && <span className="n">{reviews.length + drafts.length}</span>}
             </NavLink>
             <NavLink href="/console/facts">
+              <Icon name="facts" />
               正解データ{pendingSubs > 0 && <span className="n">{pendingSubs}</span>}
             </NavLink>
-            <NavLink href="/console/runs">計測とコスト</NavLink>
+            <NavLink href="/console/runs">
+              <Icon name="runs" />
+              計測とコスト
+            </NavLink>
           </nav>
           <div className="c-user">
             <span>

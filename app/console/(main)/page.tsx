@@ -19,7 +19,7 @@ export default async function Clients() {
           今月の原価 {yen(runs.monthCostJpy)} / 上限 {yen(runs.monthCapJpy)}
         </span>
       </div>
-      <section className="c-section">
+      <section className="c-section" data-accent="cyan">
         <div className="table-wrap">
           <table className="grid">
             <thead>

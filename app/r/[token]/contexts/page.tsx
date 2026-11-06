@@ -33,7 +33,7 @@ export default async function Contexts({ params }: { params: Promise<{ token: st
   const latestWeek = groups.map((g) => g.weekStart).sort().at(-1)!;
   return (
     <>
-      <section className="r-section" aria-labelledby="s-ctx">
+      <section className="r-section" data-accent="blue" aria-labelledby="s-ctx">
         <span className="o-tag">CONDITIONS / 条件の組み合わせ</span>
         <header>
           <h2 id="s-ctx">条件ごとの結果</h2>
@@ -84,7 +84,7 @@ export default async function Contexts({ params }: { params: Promise<{ token: st
       </section>
 
       {dimensions.map((d) => (
-        <section key={d.variable} className="r-section" aria-labelledby={`s-dim-${d.variable}`}>
+        <section key={d.variable} className="r-section" data-accent="blue" aria-labelledby={`s-dim-${d.variable}`}>
           <span className="o-tag">BY {d.variable.toUpperCase()} / {d.label}別</span>
           <header>
             <h2 id={`s-dim-${d.variable}`}>{d.label}ごとの、おすすめに出た割合</h2>
@@ -101,7 +101,7 @@ export default async function Contexts({ params }: { params: Promise<{ token: st
       ))}
 
       {groups[0] && (
-        <section className="r-section" aria-labelledby="s-ctx-comp">
+        <section className="r-section" data-accent="blue" aria-labelledby="s-ctx-comp">
           <span className="o-tag">COMPETITION / {Object.values(groups[0].context).join(" × ")}</span>
           <header>
             <h2 id="s-ctx-comp">
