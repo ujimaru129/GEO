@@ -228,6 +228,12 @@ body:has(.orbit) { background: #121519; }
 .orbit .entry .said::before { content: "AI"; color: var(--pink); }
 .orbit .entry .truth::before { content: "正しくは"; color: var(--green); }
 .orbit .entry.resolved { opacity: 0.55; }
+.orbit .entry .srcs { display: grid; gap: 3px; }
+.orbit .entry .srcs summary { cursor: pointer; width: fit-content; font-size: 12px; color: var(--text-2); list-style: none; display: flex; align-items: center; gap: 6px; }
+.orbit .entry .srcs summary::-webkit-details-marker { display: none; }
+.orbit .entry .srcs summary::before { content: ""; width: 0; height: 0; border-left: 5px solid var(--cyan); border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform 0.15s; filter: drop-shadow(0 0 3px var(--cyan)); }
+.orbit .entry .srcs[open] summary::before { transform: rotate(90deg); }
+.orbit .entry .srcs[open] summary { margin-bottom: 4px; }
 .orbit .stamp { font-family: var(--plex-mono); font-size: 9.5px; transform: none; border-width: 1px; letter-spacing: 0.06em; box-shadow: 0 0 8px rgb(255 79 163 / 0.35); }
 .orbit .verdict { font-family: var(--plex-mono); font-weight: 500; letter-spacing: 0.1em; }
 .orbit .verdict.bad { color: var(--pink); text-shadow: 0 0 8px rgb(255 79 163 / 0.5); }

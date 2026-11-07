@@ -64,15 +64,15 @@ export default async function Misinfo({ params }: { params: Promise<{ token: str
                   {ymdSlash(m.firstSeen)}〜{m.ongoing ? "継続中" : md(m.lastSeen)}
                 </span>
                 {m.sources.length > 0 && (
-                  <div className="srcs">
-                    <span className="faint small">主な引用元</span>
+                  <details className="srcs">
+                    <summary>主な引用元（{m.sources.length}）</summary>
                     {m.sources.map((s) => (
                       <span key={s.domain} className="src" title={s.domain}>
                         <span className="mono">{s.domain}</span>
                         <span className="t">{SOURCE_LABEL[s.sourceType]}</span>
                       </span>
                     ))}
-                  </div>
+                  </details>
                 )}
               </div>
             </article>
