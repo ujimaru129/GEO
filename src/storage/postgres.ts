@@ -1,4 +1,5 @@
 import postgres from "postgres";
+import type { AnalysisResult, AnalysisTarget } from "../analysis/index.ts";
 import type { FactRecord } from "../facts.ts";
 import { normalizeName } from "../normalize.ts";
 import type { EntitiesFile, Question } from "../questions/index.ts";
@@ -25,11 +26,12 @@ export class PostgresStorage implements Storage {
                   on conflict (id) do update set name = excluded.name, plan = excluded.plan`;
       }
       for (const e of file.entities) {
-        await sql`insert into entities (id, client_id, industry, role, type, official_name, ambiguous_flag, contexts, updated_at)
-                  values (${e.id}, ${e.client_id}, ${e.industry}, ${e.role}, ${e.type}, ${e.official_name}, ${e.ambiguous}, ${this.json(e.contexts)}, now())
+        await sql`insert into entities (id, client_id, industry, role, type, official_name, ambiguous_flag, contexts, official_domains, updated_at)
+                  values (${e.id}, ${e.client_id}, ${e.industry}, ${e.role}, ${e.type}, ${e.official_name}, ${e.ambiguous}, ${this.json(e.contexts)},
+                          ${e.official_domains ?? []}, now())
                   on conflict (id) do update set client_id = excluded.client_id, industry = excluded.industry, role = excluded.role,
                     type = excluded.type, official_name = excluded.official_name, ambiguous_flag = excluded.ambiguous_flag,
-                    contexts = excluded.contexts, updated_at = now()`;
+                    contexts = excluded.contexts, official_domains = excluded.official_domains, updated_at = now()`;
         await sql`delete from entity_aliases where entity_id = ${e.id}`;
         for (const alias of new Set([e.official_name, ...e.aliases])) {
           await sql`insert into entity_aliases (entity_id, alias, normalized) values (${e.id}, ${alias}, ${normalizeName(alias)})`;
@@ -85,15 +87,68 @@ export class PostgresStorage implements Storage {
   }
 
   async monthToDateCostUsd(now: Date) {
-    const [row] = await this.sql`select coalesce(sum(cost_usd), 0)::float8 as usd from runs where executed_at >= ${jstMonthStart(now).toISOString()}::timestamptz`;
+    const since = jstMonthStart(now).toISOString();
+    const [row] = await this.sql`select
+      (select coalesce(sum(cost_usd), 0) from runs where executed_at >= ${since}::timestamptz)::float8 +
+      (select coalesce(sum(cost_usd), 0) from analysis_batches where started_at >= ${since}::timestamptz)::float8 as usd`;
     return Number(row.usd);
   }
 
   async monthToDateCostUsdByClient(now: Date) {
-    const rows = await this.sql`select a.key as client_id, sum(r.cost_usd * a.value::numeric)::float8 as usd
-      from runs r, jsonb_each_text(r.cost_allocation) a
-      where r.executed_at >= ${jstMonthStart(now).toISOString()}::timestamptz group by a.key`;
+    const since = jstMonthStart(now).toISOString();
+    const rows = await this.sql`select client_id, sum(usd)::float8 as usd from (
+        select a.key as client_id, r.cost_usd * a.value::numeric as usd
+        from runs r, jsonb_each_text(r.cost_allocation) a where r.executed_at >= ${since}::timestamptz
+        union all
+        select a.key, a.value::numeric from analysis_batches b, jsonb_each_text(b.cost_allocation) a where b.started_at >= ${since}::timestamptz
+      ) x group by client_id`;
     return Object.fromEntries(rows.map((r) => [r.client_id as string, Number(r.usd)]));
+  }
+
+  async listUnanalyzed(version: string, opts: { measurementId?: string; limit?: number } = {}): Promise<AnalysisTarget[]> {
+    const rows = await this.sql`select r.*, s.text, s.citations_json from runs r join responses s on s.run_id = r.id
+      where r.status = 'ok'
+        and not exists (select 1 from run_analyses a where a.run_id = r.id and a.analyzer_version = ${version})
+        ${opts.measurementId ? this.sql`and r.measurement_id = ${opts.measurementId}` : this.sql``}
+      order by r.executed_at
+      ${opts.limit !== undefined ? this.sql`limit ${opts.limit}` : this.sql``}`;
+    return rows.map((r) => ({
+      run: {
+        id: r.id, measurementId: r.measurement_id, promptKey: r.prompt_key, questionId: r.question_id, entityId: r.entity_id,
+        competitorId: r.competitor_id, variant: r.variant, context: r.context ?? {}, promptText: r.prompt_text, engine: r.engine, model: r.model,
+        trialNo: r.trial_no, executedAt: new Date(r.executed_at).toISOString(), status: r.status, attempts: r.attempts, latencyMs: r.latency_ms,
+        inputTokens: r.input_tokens, outputTokens: r.output_tokens, reasoningTokens: r.reasoning_tokens, searchCount: r.search_count,
+        costUsd: Number(r.cost_usd), costJpy: Number(r.cost_jpy), costAllocation: r.cost_allocation ?? {}, error: r.error, configHash: r.config_hash,
+      },
+      // 解析には本文と引用だけ使う（request / raw は読まない）
+      response: { runId: r.id, text: r.text, citations: r.citations_json ?? [], request: null, raw: null },
+    }));
+  }
+
+  async saveAnalysis(res: AnalysisResult) {
+    const b = res.batch;
+    const v = b.version;
+    await this.sql.begin(async (sql) => {
+      await sql`insert into analysis_batches (id, measurement_id, analyzer_version, started_at, finished_at, runs, llm_calls, llm_failed,
+                  input_tokens, output_tokens, cost_usd, cost_jpy, cost_allocation, model)
+                values (${b.id}, ${b.measurementId}, ${v}, ${b.startedAt}, ${b.finishedAt}, ${b.runIds.length}, ${b.llmCalls}, ${b.llmFailed},
+                  ${b.inputTokens}, ${b.outputTokens}, ${b.costUsd}, ${b.costJpy}, ${this.json(b.costAllocation)}, ${b.model})`;
+      for (const m of res.mentions) {
+        await sql`insert into mentions (run_id, entity_id, rank, method, analyzer_version) values (${m.runId}, ${m.entityId}, ${m.rank}, ${m.method}, ${v})
+                  on conflict do nothing`;
+      }
+      for (const c of res.claims) {
+        await sql`insert into claims (run_id, entity_id, fact_key, claim_json, verdict, confidence, evidence, analyzer_version)
+                  values (${c.runId}, ${c.entityId}, ${c.factKey}, ${this.json(c.claimJson)}, ${c.verdict}, ${c.confidence}, ${c.evidence}, ${v})`;
+      }
+      for (const c of res.citations) {
+        await sql`insert into citations (run_id, url, domain, source_type, analyzer_version) values (${c.runId}, ${c.url}, ${c.domain}, ${c.sourceType}, ${v})
+                  on conflict do nothing`;
+      }
+      for (const id of b.runIds) {
+        await sql`insert into run_analyses (run_id, analyzer_version, batch_id) values (${id}, ${v}, ${b.id}) on conflict do nothing`;
+      }
+    });
   }
 
   async insertFacts(facts: FactRecord[]) {

@@ -59,6 +59,8 @@ export const entitySchema = z.object({
   aliases: z.array(z.string()).default([]),
   /** 一般名詞と同じ名前など。言及検出で文脈判定を必須にする */
   ambiguous: z.boolean().default(false),
+  /** 公式サイト・公式SNSのドメイン（例: example.com, x.com/example は不可。ドメイン単位）。引用元の「公式」判定に使う */
+  official_domains: z.array(z.string()).optional(),
   /** target のみ。比較・シェア計測の相手 */
   competitors: z.array(z.string()).default([]),
   /** target のみ。この対象に関係する条件（例: { region: [渋谷], occasion: [大晦日, 夏フェス] }） */

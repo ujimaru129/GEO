@@ -1,0 +1,63 @@
+# 回答の解析（フェーズB）の設定。
+# 言及の検出と引用元の分類はルールで行い（費用なし）、正誤の判定だけ小型の LLM を使う。
+# 解析方法を変えたら version を上げる。レポートは最新の version の結果を使い、古い結果も残る。
+
+version: b1
+
+# 正誤の判定に使うモデル。実測 1回答あたり入力 約900・出力 約550トークン ≒ ¥0.06、約6秒（2026-11）。
+llm:
+  model: gpt-6-luna
+  # default = 通常料金。flex（約半額）は混雑時に断られ数分待たされることがある。差は月数十円なので default
+  service_tier: default
+  concurrency: 8
+  max_attempts: 3
+  timeout_ms: 120000
+  pricing:
+    input_per_mtok: 0.1
+    output_per_mtok: 0.5
+    flex_token_multiplier: 0.5
+
+# この確信度より低い判定は「照合不能」にする（誤判定で顧客を不安にさせないため）
+min_confidence: 0.6
+
+# 引用元の種類の判定（ドメインの末尾一致）。公式サイトは data/entities.yaml の official_domains で登録する。
+source_domains:
+  wiki: [wikipedia.org, pixiv.net, fandom.com, wikiwiki.jp, atwiki.jp, seesaawiki.jp, namu.wiki, dic.nicovideo.jp]
+  sns: [x.com, twitter.com, instagram.com, tiktok.com, youtube.com, youtu.be, facebook.com, threads.net, threads.com, note.com, ameblo.jp, lineblog.me, reddit.com, bsky.app]
+  ec: [amazon.co.jp, amazon.com, rakuten.co.jp, shopping.yahoo.co.jp, tower.jp, hmv.co.jp, mercari.com, apps.apple.com, play.google.com, store.steampowered.com, store.playstation.com, playstation.com, nintendo.com, ticketdive.com, tiget.net, livepocket.jp, eplus.jp, t.pia.jp, l-tike.com, ticket.rakuten.co.jp] # チケット販売も ec
+  media:
+    - natalie.mu
+    - oricon.co.jp
+    - modelpress.jp
+    - mdpr.jp
+    - billboard-japan.com
+    - barks.jp
+    - realsound.jp
+    - musicman.co.jp
+    - famitsu.com
+    - 4gamer.net
+    - gamewith.jp
+    - game8.jp
+    - automaton-media.com
+    - dengekionline.com
+    - itmedia.co.jp
+    - nikkei.com
+    - asahi.com
+    - yomiuri.co.jp
+    - mainichi.jp
+    - sankei.com
+    - nhk.or.jp
+    - news.yahoo.co.jp
+    - excite.co.jp
+    - livedoor.com
+    - prtimes.jp
+    - thetv.jp
+    - mantan-web.jp
+    - cinematoday.jp
+    - eiga.com
+    - lmaga.jp
+    - tokyo-sports.co.jp
+    - nikkansports.com
+    - sponichi.co.jp
+    - sanspo.com
+    - hochi.news

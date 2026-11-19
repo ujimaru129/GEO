@@ -135,12 +135,37 @@ export type Industry = z.infer<typeof industrySchema>;
 export const industriesSchema = z.record(z.string(), industrySchema);
 export type Industries = z.infer<typeof industriesSchema>;
 
+export const analysisConfigSchema = z.object({
+  version: z.string().min(1),
+  llm: z.object({
+    model: z.string(),
+    service_tier: z.enum(["flex", "default"]),
+    concurrency: z.number().int().min(1).max(64),
+    max_attempts: z.number().int().min(1).max(10),
+    timeout_ms: z.number().int().positive(),
+    pricing: z.object({
+      input_per_mtok: z.number().nonnegative(),
+      output_per_mtok: z.number().nonnegative(),
+      flex_token_multiplier: z.number().positive().max(1).default(1),
+    }),
+  }),
+  min_confidence: z.number().min(0).max(1),
+  source_domains: z.object({
+    wiki: z.array(z.string()).default([]),
+    sns: z.array(z.string()).default([]),
+    ec: z.array(z.string()).default([]),
+    media: z.array(z.string()).default([]),
+  }),
+});
+export type AnalysisConfig = z.infer<typeof analysisConfigSchema>;
+
 export type AppConfig = {
   engines: EnginesConfig;
   measurement: MeasurementConfig;
   plans: PlansConfig;
   factKeys: FactKeys;
   industries: Industries;
+  analysis: AnalysisConfig;
   /** 実行条件の再現用。全 run にこのハッシュを紐付け、本文は config_snapshots に保存する */
   snapshotHash: string;
   snapshot: unknown;
@@ -159,6 +184,7 @@ export function loadConfig(dir: string | URL = defaultConfigDir()): AppConfig {
   const plans = plansConfigSchema.parse(read("plans.yaml"));
   const factKeys = factKeysSchema.parse(read("fact_keys.yaml"));
   const industries = industriesSchema.parse(read("industries.yaml"));
+  const analysis = analysisConfigSchema.parse(read("analysis.yaml"));
   for (const ind of Object.keys(factKeys)) {
     if (!industries[ind]) throw new Error(`fact_keys.yaml の業態 ${ind} が industries.yaml にありません`);
   }
@@ -176,7 +202,7 @@ export function loadConfig(dir: string | URL = defaultConfigDir()): AppConfig {
   }
   const snapshot = { engines, measurement, plans };
   const snapshotHash = createHash("sha256").update(stableStringify(snapshot)).digest("hex").slice(0, 16);
-  return { engines, measurement, plans, factKeys, industries, snapshot, snapshotHash };
+  return { engines, measurement, plans, factKeys, industries, analysis, snapshot, snapshotHash };
 }
 
 export function stableStringify(value: unknown): string {

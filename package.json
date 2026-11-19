@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --no-warnings --test \"test/**/*.test.ts\"",
     "measure": "NODE_USE_ENV_PROXY=1 node --env-file-if-exists=.env --experimental-strip-types --no-warnings src/cli/measure.ts",
+    "analyze": "NODE_USE_ENV_PROXY=1 node --env-file-if-exists=.env --experimental-strip-types --no-warnings src/cli/analyze.ts",
     "sync": "NODE_USE_ENV_PROXY=1 node --env-file-if-exists=.env --experimental-strip-types --no-warnings src/cli/sync.ts",
     "estimate": "node --experimental-strip-types --no-warnings scripts/estimate-budget.ts",
     "facts:import": "node --env-file-if-exists=.env --experimental-strip-types --no-warnings src/cli/facts-import.ts",

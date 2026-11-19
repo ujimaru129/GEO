@@ -2,7 +2,7 @@
 
 生成AI（ChatGPT系 / Gemini / Perplexity / Claude）の回答を「正確性・鮮度・推薦」の3軸で計測するシステム（MVP開発中）。
 
-## 現在の状態: フェーズA（計測エンジン）
+## 現在の状態: フェーズA（計測エンジン）＋フェーズB（回答の解析）
 
 | 機能 | 場所 |
 | --- | --- |
@@ -13,6 +13,23 @@
 | 顧客プラン（頻度・試行回数・質問セット・原価上限） | `config/plans.yaml`, `src/plans.ts` |
 | 正解データ（facts）の CSV 取り込み | `config/fact_keys.yaml`, `src/facts.ts`, `data/facts.template.csv` |
 | 画面のための仕組み（専用URL・社内メンバー・記入依頼と承認・確認履歴） | `db/migrations/0002_app.sql`, `src/workflow/` |
+| 回答の解析: 言及・引用元（ルール）と正誤の判定（小型LLM） | `src/analysis/`, `config/analysis.yaml`, `db/migrations/0003_analysis.sql` |
+
+### 回答の解析（フェーズB）
+
+計測の後に `npm run analyze` で、未解析の回答をまとめて解析する。
+
+| 解析 | 方法 | 費用 |
+| --- | --- | --- |
+| 言及（自社・競合の名前が出たか、出てきた順） | 別名辞書で照合（表記ゆれ吸収。長い名前の一部だけの一致は除外） | なし |
+| 引用元（ドメインと種類: 公式・メディア・wiki・SNS・EC・その他） | `official_domains`（entities.yaml）と `config/analysis.yaml` の一覧 | なし |
+| 正誤（正しい・古い情報・誤り・照合不能） | 質問の主題が回答に出てきて、正解データがあるときだけ小型LLMで照合 | 1回答 約¥0.06 |
+
+- LLMの判定は、回答文に実在する一節（evidence）が無いものを捨てる。確信度が低いものは「照合不能」
+- 判定に失敗した回答は解析済みにしないので、次回の `npm run analyze` でやり直す
+- 解析の費用は `analysis_batches` に記録し、月間予算と顧客別の原価に含める
+- 解析方法を変えたら `config/analysis.yaml` の version を上げる（レポートは最新 version の結果を使う）
+
 
 ## 画面と仕組み（2026-11-03 確定）
 
@@ -159,6 +176,7 @@ npm run estimate  # 月間予算のシナリオ比較
 - `data/entities.yaml` は仮データ。テスト対象5組と競合が決まったら差し替える
 - Gemini のレスポンス形式は公式ドキュメントを取得できていないため、実キーでの疎通時に確認する
 - 定期実行（Vercel Cron + QStash）は未実装。現状は `npm run measure` を毎日1回実行する想定
-- 解析（フェーズB）が未実装のため、本番 DB ではレポートに出す言及・判定・引用元がまだ作られない（画面はデモデータで確認）
+- 解析は実データでの検証がまだ（計測対象が仮データのため）。テスト対象と正解データを登録後に確認する
+- 運営コンソールの「計測とコスト」には解析の費用がまだ表示されない（予算の集計には含まれる）
 - 改善の助言の自動生成（フェーズD）は未実装。助言は report_advice に入れたものを表示する
 - `scripts/estimate-budget.ts` の単価は `config/pricing.json`（OpenAI flex の割引は未反映＝保守的）

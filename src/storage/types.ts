@@ -1,5 +1,6 @@
 import type { EngineName } from "../config.ts";
 import type { Citation } from "../engines/types.ts";
+import type { AnalysisResult, AnalysisTarget } from "../analysis/index.ts";
 import type { FactRecord } from "../facts.ts";
 import type { EntitiesFile, Question } from "../questions/index.ts";
 
@@ -59,10 +60,14 @@ export interface Storage {
   /** 生データの保存。追記のみで上書きしない */
   recordRun(run: RunRecord, response: ResponseRecord | null): Promise<void>;
   finishMeasurement(id: string, summary: unknown): Promise<void>;
-  /** 当月（日本時間）の確定費用 */
+  /** 当月（日本時間）の確定費用（計測＋解析） */
   monthToDateCostUsd(now: Date): Promise<number>;
   /** 当月（日本時間）の顧客別の按分後費用 */
   monthToDateCostUsdByClient(now: Date): Promise<Record<string, number>>;
+  /** 解析の対象: 成功した run のうち、この解析方法（version）でまだ解析していないもの */
+  listUnanalyzed(version: string, opts?: { measurementId?: string; limit?: number }): Promise<AnalysisTarget[]>;
+  /** 解析結果の保存（実行記録・解析済みの印・言及・判定・引用元をまとめて） */
+  saveAnalysis(result: AnalysisResult): Promise<void>;
   /** 正解データの追加（上書きしない） */
   insertFacts(facts: FactRecord[]): Promise<void>;
   /** 正解データの全バージョン */
@@ -76,12 +81,26 @@ export function jstMonthStart(now: Date): Date {
   return new Date(Date.UTC(jst.getUTCFullYear(), jst.getUTCMonth(), 1) - 9 * 3600_000);
 }
 
-export function allocateByClient(runs: Pick<RunRecord, "executedAt" | "costUsd" | "costAllocation">[], now: Date) {
+export function allocateByClient(
+  runs: Pick<RunRecord, "executedAt" | "costUsd" | "costAllocation">[],
+  now: Date,
+  batches: Pick<AnalysisResult["batch"], "startedAt" | "costAllocation">[] = [],
+) {
   const start = jstMonthStart(now).getTime();
   const out: Record<string, number> = {};
   for (const r of runs) {
     if (Date.parse(r.executedAt) < start) continue;
     for (const [c, share] of Object.entries(r.costAllocation ?? {})) out[c] = (out[c] ?? 0) + r.costUsd * share;
   }
+  // 解析の費用は顧客ごとの金額（USD）で記録している
+  for (const b of batches) {
+    if (Date.parse(b.startedAt) < start) continue;
+    for (const [c, usd] of Object.entries(b.costAllocation ?? {})) out[c] = (out[c] ?? 0) + usd;
+  }
   return out;
+}
+
+export function batchCostSince(batches: Pick<AnalysisResult["batch"], "startedAt" | "costUsd">[], now: Date) {
+  const start = jstMonthStart(now).getTime();
+  return batches.filter((b) => Date.parse(b.startedAt) >= start).reduce((s, b) => s + b.costUsd, 0);
 }
