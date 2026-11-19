@@ -11,7 +11,8 @@ export class ClaudeEngine implements EngineClient {
   private readonly cfg: Cfg;
   private readonly apiKey: string;
 
-  constructor(cfg: Cfg, apiKey = requireEnv("ANTHROPIC_API_KEY")) {
+  // クラウド開発環境では ANTHROPIC_API_KEY がセッションに渡らないため GEO_ANTHROPIC_API_KEY も読む
+  constructor(cfg: Cfg, apiKey = process.env.GEO_ANTHROPIC_API_KEY || requireEnv("ANTHROPIC_API_KEY")) {
     this.cfg = cfg;
     this.model = cfg.model;
     this.apiKey = apiKey;
