@@ -89,6 +89,8 @@ export const planSchema = z.object({
   frequency: z.enum(["once", "monthly", "biweekly", "weekly"]),
   priority_frequency: z.enum(["none", "weekly", "twice_weekly"]),
   trials: z.number().int().min(1).max(20),
+  /** エンジン別に試行回数を変える場合（例: 原価の高い claude だけ 2 回）。trials 以下にする */
+  engine_trials: z.partialRecord(z.enum(ENGINE_NAMES), z.number().int().min(1).max(20)).optional(),
   engines: z.array(z.enum(ENGINE_NAMES)).min(1),
   max_competitors: z.number().int().min(0),
   /** tagged = 質問辞書の plans にこのプラン名がある質問のみ / all = 全質問 */

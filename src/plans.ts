@@ -54,6 +54,8 @@ export type SelectedPrompt = {
   clientTrials: Record<string, number>;
   /** エンジン → そのエンジンを含むプランの顧客 */
   engineClients: Partial<Record<EngineName, string[]>>;
+  /** エンジン → 顧客 → 試行回数（プランの engine_trials で減らしている場合だけ） */
+  engineTrials?: Partial<Record<EngineName, Record<string, number>>>;
 };
 
 export function selectPrompts(
@@ -88,7 +90,14 @@ export function selectPrompts(
       if (ids.length) engineClients[e] = ids;
     }
     const clientTrials = Object.fromEntries(clientIds.map((id) => [id, planOf.get(id)!.trials]));
-    selected.push({ prompt, clientIds, trials: Math.max(...Object.values(clientTrials)), clientTrials, engineClients });
+    const engineTrials: SelectedPrompt["engineTrials"] = {};
+    for (const [e, ids] of Object.entries(engineClients) as [EngineName, string[]][]) {
+      for (const id of ids) {
+        const n = planOf.get(id)!.engine_trials?.[e];
+        if (n !== undefined && n < clientTrials[id]) (engineTrials[e] ??= {})[id] = n;
+      }
+    }
+    selected.push({ prompt, clientIds, trials: Math.max(...Object.values(clientTrials)), clientTrials, engineClients, engineTrials });
   }
   return selected;
 }

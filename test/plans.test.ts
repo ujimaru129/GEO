@@ -86,6 +86,28 @@ test("共有の質問で、プランの試行回数を超えた回はその顧�
   assert.deepEqual(jobs.map((j) => j.clientIds.sort().join("+")), ["std+try", "std+try", "std+try", "std", "std"]);
 });
 
+test("プランの engine_trials: Basic の claude は2回、ほかのエンジンは3回。Pro と共有の回は Pro だけが負担", () => {
+  const f: EntitiesFile = {
+    clients: [...file.clients, { id: "bas", name: "Basic", plan: "basic" }],
+    entities: [
+      ...file.entities,
+      { id: "b1", client_id: "bas", industry: "idol", role: "target", type: "group", official_name: "グループB", aliases: [], ambiguous: false, competitors: [], contexts: {} },
+    ],
+  };
+  assert.equal(config.plans.plans.basic.engine_trials?.claude, 2);
+  const solo = selectPrompts(expandPrompts(questions, f, config.plans), f, config.plans, { kind: "full" }, { clients: ["bas"] })
+    .filter((s) => s.prompt.key === "idol-disc-001|v0|-|-");
+  const jobs = buildPlan(solo);
+  assert.equal(jobs.filter((j) => j.engine === "claude").length, 2);
+  assert.equal(jobs.filter((j) => j.engine === "openai").length, 3);
+  const shared = selectPrompts(expandPrompts(questions, f, config.plans), f, config.plans, { kind: "full" }, { clients: ["bas", "std"] })
+    .filter((s) => s.prompt.key === "idol-disc-001|v0|-|-");
+  const claude = buildPlan(shared).filter((j) => j.engine === "claude");
+  assert.deepEqual(claude.map((j) => j.clientIds.sort().join("+")), ["bas+std", "bas+std", "std", "std", "std"]);
+  // --trials で一律に上書きしたときは engine_trials を使わない（受け入れテスト用）
+  assert.equal(buildPlan(solo, { trials: 5 }).filter((j) => j.engine === "claude").length, 5);
+});
+
 test("期間を指定した質問は、その期間の計測日にだけ選ばれる（大晦日のイベント）", () => {
   const dec = expandPrompts(questions, { ...file, entities: file.entities.map((e) => (e.id === "s1" ? { ...e, contexts: { region: ["渋谷"] } } : e)) }, config.plans);
   const has = (now: Date) => selectPrompts(dec, file, config.plans, { kind: "full" }, { now }).some((s) => s.prompt.questionId === "idol-disc-005");

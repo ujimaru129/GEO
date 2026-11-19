@@ -35,7 +35,10 @@ export function buildPlan(selection: SelectedPrompt[], opts: PlanOptions = {}): 
       for (const [engine, engineClientIds] of Object.entries(s.engineClients) as [EngineName, string[]][]) {
         if (opts.engines && !opts.engines.includes(engine)) continue;
         // 例: Basic(5回)と Lite(3回)の共有質問の4・5回目は、Basic の顧客だけが負担する
-        const clientIds = opts.trials ? engineClientIds : engineClientIds.filter((c) => trialNo <= (s.clientTrials[c] ?? s.trials));
+        // プランの engine_trials（例: Basic の claude は 2 回）もここで反映する
+        const clientIds = opts.trials
+          ? engineClientIds
+          : engineClientIds.filter((c) => trialNo <= (s.engineTrials?.[engine]?.[c] ?? s.clientTrials[c] ?? s.trials));
         if (clientIds.length === 0) continue;
         jobs.push({ prompt: s.prompt, engine, trialNo, clientIds });
       }
