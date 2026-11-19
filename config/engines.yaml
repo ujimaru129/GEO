@@ -45,7 +45,7 @@ claude:
   model: claude-sonnet-5-5
   web_search:
     tool_type: web_search_20260318 # 動的フィルタリングで検索結果の入力トークンを削減
-    max_uses: 5 # 1回答あたりの検索回数の上限（暴走防止）
+    max_uses: 3 # 1回答あたりの検索回数の上限。5回時の実測 ¥13.8/回 → 原価対策で3回に（受け入れテストで検索した回の平均は2.1回）
     user_location: { type: approximate, country: JP, timezone: Asia/Tokyo }
   max_tokens: 4096
   pricing:
