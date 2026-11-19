@@ -1,5 +1,5 @@
 import type { AnalysisConfig, FactKeyDef } from "../config.ts";
-import { EngineHttpError, postJson, requireEnv } from "../engines/types.ts";
+import { isFlexUnavailable, postJson, requireEnv } from "../engines/types.ts";
 import { currentFacts, type FactRecord, factAt } from "../facts.ts";
 import { formatFactValue } from "../report/compute.ts";
 import type { Verdict } from "../report/types.ts";
@@ -184,7 +184,7 @@ export class OpenAIClaimJudge implements ClaimJudge {
       raw = await post(request);
     } catch (err) {
       // flex が混雑で使えないときは待たずに通常料金で出し直す（Retry-After が数分になることがある）
-      if (!(err instanceof EngineHttpError && err.status === 429 && err.body.includes("flex_unavailable") && request.service_tier === "flex")) throw err;
+      if (!(isFlexUnavailable(err) && request.service_tier === "flex")) throw err;
       raw = await post(this.buildRequest(input, true));
     }
     const text = (raw?.output ?? [])

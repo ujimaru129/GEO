@@ -1,5 +1,7 @@
 import type { EnginesConfig } from "../config.ts";
-import { type AskOptions, type Citation, type EngineClient, type EngineResult, dedupeCitations, postJson, requireEnv } from "./types.ts";
+import {
+  type AskOptions, type Citation, type EngineClient, type EngineResult, dedupeCitations, isFlexUnavailable, postJson, requireEnv,
+} from "./types.ts";
 
 type Cfg = EnginesConfig["openai"];
 
@@ -35,8 +37,17 @@ export class OpenAIEngine implements EngineClient {
   }
 
   async ask(prompt: string, options: AskOptions = {}): Promise<EngineResult> {
-    const request = this.buildRequest(prompt, options);
-    const raw = await postJson("openai", "https://api.openai.com/v1/responses", { authorization: `Bearer ${this.apiKey}` }, request, options.signal);
+    const post = (req: unknown) => postJson("openai", "https://api.openai.com/v1/responses", { authorization: `Bearer ${this.apiKey}` }, req, options.signal);
+    let request = this.buildRequest(prompt, options);
+    let raw: unknown;
+    try {
+      raw = await post(request);
+    } catch (err) {
+      // flex が混雑で断られたら、待たずにその場で通常料金（default）で出し直す
+      if (!(isFlexUnavailable(err) && request.service_tier === "flex" && this.cfg.flex_fallback_to_standard)) throw err;
+      request = this.buildRequest(prompt, { ...options, preferReliability: true });
+      raw = await post(request);
+    }
     return { ...parseOpenAIResponse(raw), request };
   }
 }

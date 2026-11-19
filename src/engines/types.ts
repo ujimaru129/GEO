@@ -53,6 +53,11 @@ export class EngineHttpError extends Error {
   }
 }
 
+/** OpenAI の flex（割引ティア）が混雑で使えないエラー。Retry-After が数分になるため、待たずに通常料金で出し直す */
+export function isFlexUnavailable(err: unknown): boolean {
+  return err instanceof EngineHttpError && err.status === 429 && err.body.includes("flex_unavailable");
+}
+
 export async function postJson(
   engine: string,
   url: string,

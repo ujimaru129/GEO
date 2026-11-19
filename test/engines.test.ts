@@ -47,6 +47,36 @@ test("OpenAI: flex 設定でも最終試行は standard にフォールバック
   assert.equal(e.buildRequest("q").tools[0].user_location?.country, "JP");
 });
 
+test("OpenAI: flex が混雑で断られたら、待たずに default で出し直す（ほかの 429 は出し直さない）", async () => {
+  const realFetch = globalThis.fetch;
+  const tiers: string[] = [];
+  const reply = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { "retry-after": "300" } });
+  try {
+    globalThis.fetch = (async (_url: string, init: RequestInit) => {
+      const tier = JSON.parse(String(init.body)).service_tier;
+      tiers.push(tier);
+      if (tier === "flex") return reply(429, { error: { code: "flex_unavailable", message: "Flex processing is temporarily unavailable." } });
+      return reply(200, { model: "m", service_tier: "default", output: [{ type: "message", content: [{ type: "output_text", text: "答え" }] }], usage: { input_tokens: 1, output_tokens: 1 } });
+    }) as typeof fetch;
+    const e = new OpenAIEngine(config.engines.openai, "test-key");
+    const r = await e.ask("q");
+    assert.deepEqual(tiers, ["flex", "default"]);
+    assert.equal(r.text, "答え");
+    assert.equal(r.usage.discountedTier, false); // 割引なしの単価で費用を計算する
+    assert.equal((r.request as { service_tier: string }).service_tier, "default");
+
+    tiers.length = 0;
+    globalThis.fetch = (async (_url: string, init: RequestInit) => {
+      tiers.push(JSON.parse(String(init.body)).service_tier);
+      return reply(429, { error: { code: "rate_limit_exceeded" } });
+    }) as typeof fetch;
+    await assert.rejects(e.ask("q"), /HTTP 429/);
+    assert.deepEqual(tiers, ["flex"]);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
 test("Gemini: 検索クエリ数で課金し、検索由来の入力トークンは数えない", () => {
   const r = parseGeminiResponse(
     {
